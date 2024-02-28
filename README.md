@@ -25,8 +25,15 @@ This provides a seamless dev experience using simple commands to initiate build 
 - Plug in the Pico RP2040 chip
 - In [main.ts](src/main.ts), add the line `console.log('Hello Microworld!')`
 - Run `npm run debug`
-- The log message should print out in the prompt
+- The log message should print out in the prompt alongside the sensor outputs such as the temperature and potentiometer readings
 
+## Examples
+The `main.ts` file contains examples of interacting with hardware on a Pico:
+- Pico internal LED blinking in a timed sequence
+- Pico internal temperature sensor
+- Buttons
+- Potentiometer
+- WS2812 Individually addressable led strips
 
 
 

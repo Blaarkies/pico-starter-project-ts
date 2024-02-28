@@ -1,48 +1,43 @@
+import { interval } from 'kefir';
 import {
-    Emitter,
-    interval,
-    stream,
-} from 'kefir';
-import { makeNumberList } from './common/enumeration';
+    hslToRgb,
+    makeNumberList,
+    sequencedInterval,
+    subject,
+} from './common';
 import { adcToCelsius } from './common/unit-of-measure';
+import { WS2812 } from './ws2812/ws2812';
 
 
 // Display results in debug console
-let emitter$: Emitter<void, any>;
-let update$ = stream(e => {
-    emitter$ = e;
-});
-
 let output = {
     temperature: '-',
     potentiometer: '-',
 };
 
-update$
-    .throttle(500)
-    .onValue(() => {
-        console.log('\n\n');
-        console.log(`
+let update$ = subject();
+update$.throttle(500)
+    .onValue(() => console.log(`\n\n
 Temperature:   ${output.temperature}
 Potentiometer: ${output.potentiometer}
-`);
-    });
+`));
 
 
 // Blink internal LED
 let ledPin = board.LED;
 pinMode(ledPin, OUTPUT);
-interval(1000, 0).onValue(() => {
+let wink$ = sequencedInterval([100, 800, 300, 400, 100]);
+wink$.onValue(() => {
     digitalToggle(ledPin);
 });
 
 
 // Internal Temperature
 let tempAdc = board.adc(30);
-interval(100, 0).onValue(() => {
+interval(1000, 0).onValue(() => {
     let tempCelsius = adcToCelsius(tempAdc.read());
     output.temperature = tempCelsius.toFixed(2) + ' °C';
-    emitter$.value();
+    update$.next();
 });
 
 
@@ -79,6 +74,23 @@ interval(100, 0).onValue(() => {
             .padEnd(barLength, '*');
 
         output.potentiometer = barString;
-        emitter$.value();
+        update$.next();
     }
 });
+
+
+// WS2812 - Individually addressable led strip
+let pixelsPin = 2;
+let pixels = new WS2812(pixelsPin, 2);
+interval(150, null)
+    .scan((acc, _) => acc + 1, -1)
+    .onValue(i => {
+        let resolution = 50;
+        let h1 = (i % resolution) / resolution;
+        let h2 = ((100 + i * 1.2) % resolution) / resolution;
+
+        pixels.setLedColor(0, hslToRgb(h1, 1, .5));
+        pixels.setLedColor(1, hslToRgb(h2, 1, .5));
+
+        pixels.write();
+    });

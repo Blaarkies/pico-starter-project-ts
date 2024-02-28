@@ -3,9 +3,16 @@
     "target": "ES6",
     "module": "ES6",
     "moduleResolution": "node",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "baseUrl": "./",
+    "paths": {
+      "rp2": ["rp2"]
+    }
   },
   "references": [
     "rp2"
-  ]
+  ],
+  "buildOptions": {
+    "force": true
+  }
 }

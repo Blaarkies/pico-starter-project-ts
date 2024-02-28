@@ -16,7 +16,7 @@ let config = {
     platform: 'node',
     target: 'node14',
     legalComments: 'none',
-
+    external: ['rp2', 'storage'],
     ...additionalArgs,
 };
 await build(config).catch(() => process.exit(1));
