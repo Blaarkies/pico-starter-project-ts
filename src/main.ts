@@ -1,6 +1,35 @@
-import { interval } from 'kefir';
+import {
+    Emitter,
+    interval,
+    stream,
+} from 'kefir';
 import { makeNumberList } from './common/enumeration';
+import { adcToCelsius } from './common/unit-of-measure';
 
+
+// Display results in debug console
+let emitter$: Emitter<void, any>;
+let update$ = stream(e => {
+    emitter$ = e;
+});
+
+let output = {
+    temperature: '-',
+    potentiometer: '-',
+};
+
+update$
+    .throttle(500)
+    .onValue(() => {
+        console.log('\n\n');
+        console.log(`
+Temperature:   ${output.temperature}
+Potentiometer: ${output.potentiometer}
+`);
+    });
+
+
+// Blink internal LED
 let ledPin = board.LED;
 pinMode(ledPin, OUTPUT);
 interval(1000, 0).onValue(() => {
@@ -8,6 +37,16 @@ interval(1000, 0).onValue(() => {
 });
 
 
+// Internal Temperature
+let tempAdc = board.adc(30);
+interval(100, 0).onValue(() => {
+    let tempCelsius = adcToCelsius(tempAdc.read());
+    output.temperature = tempCelsius.toFixed(2) + ' °C';
+    emitter$.value();
+});
+
+
+// Buttons
 let buttonAPin = 2;
 board.button(buttonAPin)
     .addListener('click', () => {
@@ -22,6 +61,7 @@ board.button(buttonBPin)
     });
 
 
+// Potentiometer
 let potPin = 28;
 let potAdc = board.adc(potPin);
 let previousPotValue: number;
@@ -37,6 +77,8 @@ interval(100, 0).onValue(() => {
             .map(() => '#')
             .join('')
             .padEnd(barLength, '*');
-        console.log('Potentiometer: ', barString);
+
+        output.potentiometer = barString;
+        emitter$.value();
     }
 });
