@@ -12,7 +12,7 @@ export function subject<T = void, S = unknown>(): Subject<T, S> {
         streamEmitter = emitter;
     }) as Subject<T, S>;
 
-    // Trigger stream to save emitter
+    // Trigger stream to set emitter
     let callback = () => undefined;
     source$.onValue(callback);
     source$.offValue(callback);

@@ -4,15 +4,5 @@
     "module": "ES6",
     "moduleResolution": "node",
     "skipLibCheck": true,
-    "baseUrl": "./",
-    "paths": {
-      "rp2": ["rp2"]
-    }
   },
-  "references": [
-    "rp2"
-  ],
-  "buildOptions": {
-    "force": true
-  }
 }

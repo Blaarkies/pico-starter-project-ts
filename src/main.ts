@@ -42,7 +42,7 @@ interval(1000, 0).onValue(() => {
 
 
 // Buttons
-let buttonAPin = 2;
+let buttonAPin = 3;
 board.button(buttonAPin)
     .addListener('click', () => {
         console.log(`Button A was pressed!`);

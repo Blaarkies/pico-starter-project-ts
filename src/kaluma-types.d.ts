@@ -68,18 +68,37 @@ declare module 'pwm' {
 
     interface IPWM {
 
-        /** Start to generate PWM signal */
+        /** Start generating PWM signal */
         start(): void;
 
+        /** Stop generating PWM signal. */
+        stop(): void;
+
+        /** Close the PWM port. */
+        close(): void;
+
         /**
-         * Set the new PWM duty
+         * Set the new PWM duty cycle
          * @param duty number 0 to 1
          */
         setDuty(duty: number): void;
 
-    }
+        /**
+         * Set the new PWM frequency
+         * @param frequency number in Hz
+         */
+        setFrequency(frequency: number): void;
 
-    class PWM implements IPWM {
+        /**
+         * Get the current PWM duty cycle
+         */
+        getDuty(): number;
+
+        /**
+         * Get the frequency of the PWM instance.
+         */
+        getFrequency(): number;
+
     }
 
 }
