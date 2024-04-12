@@ -3,6 +3,9 @@ import { ButtonHoldLoopHandler } from './internal/button-hold-loop-handler';
 
 type DisposeFn = () => void;
 
+type ListenerAsyncFn = (...args: Parameters<ListenerFn>) => Promise<ReturnType<ListenerFn>>;
+type ButtonActionFn = ListenerFn | ListenerAsyncFn;
+
 /**
  * Defines the configuration of a press-hold button.
  *
@@ -27,9 +30,9 @@ export interface ButtonHoldConfig {
     /** Called repeatedly while button is held down */
     callbackRepeat?: (iteration: number) => void;
     /** Called when transition starts */
-    callbackStart?: ListenerFn;
+    callbackStart?: ButtonActionFn;
     /** Called when transition ends */
-    callbackEnd?: ListenerFn;
+    callbackEnd?: ButtonActionFn;
     /** Amount of time to hold down the button */
     transitionMs?: number;
     /** Interval duration for calls to `callbackRepeat`*/
@@ -49,18 +52,19 @@ export interface ButtonHoldConfig {
  */
 export class MultiActionButton {
 
-    private pressFnSet = new Set<ListenerFn>();
-    private releaseFnSet = new Set<ListenerFn>();
-    private changeFnSet = new Set<ListenerFn>();
+    private pressFnSet = new Set<ButtonActionFn>();
+    private releaseFnSet = new Set<ButtonActionFn>();
+    private changeFnSet = new Set<ButtonActionFn>();
     private readonly pin: GPIO;
     private loopHandler: ButtonHoldLoopHandler;
 
     constructor(pinIndex: number) {
         this.pin = new GPIO(pinIndex, INPUT_PULLUP);
         this.pin.irq((_, status) => {
-            if (status === FALLING || status === RISING) {
+            if (status === CHANGE) {
                 this.changeFnSet.forEach(fn => fn());
             }
+
             if (status === FALLING) {
                 this.pressFnSet.forEach(fn => fn());
             }
@@ -70,7 +74,9 @@ export class MultiActionButton {
                 return;
             }
 
-            if (status === RISING) {
+            // Basic release functions only run when no OnHold functions
+            // were added
+            if (status === RISING || status === CHANGE) {
                 this.releaseFnSet.forEach(fn => fn());
             }
         }, CHANGE);
@@ -79,18 +85,21 @@ export class MultiActionButton {
     private manageHoldTransition(status: number) {
         let lh = this.loopHandler;
         let now = millis();
-        // Occasionally `status===CHANGE`. Unclear why, so ignore it
+
         if (status === FALLING) {
-            lh.timeDown = now;
+            lh.timeAtPress = now;
             lh.update();
-        } else if (status === RISING) {
-            lh.timeUp = now;
+
+            // Occasionally `CHANGE` is emitted. Unclear why it happens
+            // For safety, fallback to handling it as a button release
+        } else if (status === RISING || status === CHANGE) {
+            lh.timeAtRelease = now;
             lh.update();
 
             let releasedBeforeHold =
-                (lh.timeUp - lh.timeDown) < lh.transitionMs;
+                (lh.timeAtRelease - lh.timeAtPress) < lh.transitionMs;
             // Determine if this button release happened before a
-            // loop transition
+            // hold transition
             if (releasedBeforeHold) {
                 this.releaseFnSet.forEach(fn => fn());
             }
@@ -101,17 +110,17 @@ export class MultiActionButton {
         this.pin.irq(undefined);
     }
 
-    onPress(callback: ListenerFn): DisposeFn {
+    onPress(callback: ButtonActionFn): DisposeFn {
         this.pressFnSet.add(callback);
         return () => this.pressFnSet.delete(callback);
     }
 
-    onRelease(callback: ListenerFn) {
+    onRelease(callback: ButtonActionFn) {
         this.releaseFnSet.add(callback);
         return () => this.releaseFnSet.delete(callback);
     }
 
-    onChange(callback: ListenerFn) {
+    onChange(callback: ButtonActionFn) {
         this.changeFnSet.add(callback);
         return () => this.changeFnSet.delete(callback);
     }
@@ -120,7 +129,7 @@ export class MultiActionButton {
                callbackRepeat,
                callbackStart,
                callbackEnd,
-               transitionMs = 300,
+               transitionMs = 500,
                intervalMs = 500,
            }: ButtonHoldConfig): DisposeFn {
         this.loopHandler?.dispose();

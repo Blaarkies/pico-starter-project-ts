@@ -4,6 +4,6 @@
     "module": "ES6",
     "moduleResolution": "node",
     "skipLibCheck": true,
-    "esModuleInterop": true,
+    "esModuleInterop": true
   }
 }
