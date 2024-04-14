@@ -1,6 +1,8 @@
 import { subject } from '../common';
 import { SimulatedGpio } from './simulated-gpio';
 
+type GpioState = typeof LOW | typeof HIGH;
+
 type IrqStatusType =
     | typeof FALLING
     | typeof RISING
@@ -15,9 +17,10 @@ type MockedUsages = { constructor: jest.Mock; }
 
 export class SimulatedGpioController {
 
-    private usages = this.getDefaultUsages();
-
     irqEvent$ = subject<IrqEvent>();
+
+    private usages = this.getDefaultUsages();
+    private gpioStates: GpioState[] = [];
 
     addMethodCall(methodName: MethodName, pin: number, ...args) {
         if (methodName === 'constructor') {
@@ -36,6 +39,7 @@ export class SimulatedGpioController {
 
     restore() {
         this.usages = this.getDefaultUsages();
+        this.gpioStates = [];
         this.irqEvent$ = subject<IrqEvent>();
     }
 
@@ -46,8 +50,32 @@ export class SimulatedGpioController {
                    ?? jest.fn();
     }
 
-    triggerIrq(pin: number, status: IrqStatusType) {
+    triggerIrq(pin: number, status: IrqStatusType, updateGpioState = true) {
         this.irqEvent$.next({pin, status});
+
+        if (updateGpioState) {
+            switch (status) {
+                case FALLING:
+                    this.gpioStates[pin] = LOW;
+                    break;
+                case RISING:
+                    this.gpioStates[pin] = HIGH;
+                    break;
+                case CHANGE:
+                    this.gpioStates[pin] = this.gpioStates[pin] === LOW
+                                           ? HIGH
+                                           : LOW;
+                    break;
+            }
+        }
+    }
+
+    setGpioState(pin: number, state: GpioState) {
+        this.gpioStates[pin] = state;
+    }
+
+    getGpioState(pin: number): GpioState {
+        return this.gpioStates[pin];
     }
 
     private getDefaultUsages(): MockedUsages {

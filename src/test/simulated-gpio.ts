@@ -14,7 +14,8 @@ export class SimulatedGpio implements GPIO {
     }
 
     read(): number {
-        throw new Error('Method not implemented.');
+        gpioController.addMethodCall('read', this.pin);
+        return gpioController.getGpioState(this.pin);
     }
 
     write(value: 0 | 1) {

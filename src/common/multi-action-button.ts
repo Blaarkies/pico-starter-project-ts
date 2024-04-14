@@ -57,52 +57,62 @@ export class MultiActionButton {
     private changeFnSet = new Set<ButtonActionFn>();
     private readonly pin: GPIO;
     private loopHandler: ButtonHoldLoopHandler;
+    private lastEventTimestamp: number;
 
-    constructor(pinIndex: number) {
+    constructor(pinIndex: number, debounceDurationMs = 50) {
+        this.lastEventTimestamp = millis() - debounceDurationMs;
+
         this.pin = new GPIO(pinIndex, INPUT_PULLUP);
-        this.pin.irq((_, status) => {
-            if (status === CHANGE) {
-                this.changeFnSet.forEach(fn => fn());
-            }
 
-            if (status === FALLING) {
+        this.pin.irq((_, status) => {
+            let now = millis();
+
+            // Filter noisy events during the debounce period
+            let timeSinceLastEvent = now - this.lastEventTimestamp;
+            if (timeSinceLastEvent < debounceDurationMs) {
+                return;
+            }
+            this.lastEventTimestamp = now;
+
+            let isPress = status === FALLING;
+
+            // onChange() callbacks
+            this.changeFnSet.forEach(fn => fn());
+
+            // onPress() callbacks
+            if (isPress) {
                 this.pressFnSet.forEach(fn => fn());
             }
 
+            // onHold() callback
             if (this.loopHandler) {
-                this.manageHoldTransition(status);
-                return;
-            }
-
-            // Basic release functions only run when no OnHold functions
-            // were added
-            if (status === RISING || status === CHANGE) {
+                this.manageHoldTransition(isPress, now);
+            } else if (!isPress) {
+                // Basic release functions only run when no OnHold function
+                // was added, else this gets handled by the loopHandler
                 this.releaseFnSet.forEach(fn => fn());
             }
         }, CHANGE);
     }
 
-    private manageHoldTransition(status: number) {
+    private manageHoldTransition(isPress: boolean, now: number) {
         let lh = this.loopHandler;
-        let now = millis();
 
-        if (status === FALLING) {
+        if (isPress) {
             lh.timeAtPress = now;
             lh.update();
 
-            // Occasionally `CHANGE` is emitted. Unclear why it happens
-            // For safety, fallback to handling it as a button release
-        } else if (status === RISING || status === CHANGE) {
-            lh.timeAtRelease = now;
-            lh.update();
+            return;
+        }
 
-            let releasedBeforeHold =
-                (lh.timeAtRelease - lh.timeAtPress) < lh.transitionMs;
-            // Determine if this button release happened before a
-            // hold transition
-            if (releasedBeforeHold) {
-                this.releaseFnSet.forEach(fn => fn());
-            }
+        lh.timeAtRelease = now;
+        lh.update();
+
+        let releasedBeforeHold =
+            (lh.timeAtRelease - lh.timeAtPress) < lh.transitionMs;
+        // Determine if this button release happened before a hold transition
+        if (releasedBeforeHold) {
+            this.releaseFnSet.forEach(fn => fn());
         }
     }
 
@@ -115,33 +125,28 @@ export class MultiActionButton {
         return () => this.pressFnSet.delete(callback);
     }
 
-    onRelease(callback: ButtonActionFn) {
+    onRelease(callback: ButtonActionFn): DisposeFn {
         this.releaseFnSet.add(callback);
         return () => this.releaseFnSet.delete(callback);
     }
 
-    onChange(callback: ButtonActionFn) {
+    onChange(callback: ButtonActionFn): DisposeFn {
         this.changeFnSet.add(callback);
         return () => this.changeFnSet.delete(callback);
     }
 
-    onHold({
-               callbackRepeat,
-               callbackStart,
-               callbackEnd,
-               transitionMs = 500,
-               intervalMs = 500,
-           }: ButtonHoldConfig): DisposeFn {
+    onHold(config: ButtonHoldConfig): DisposeFn {
         this.loopHandler?.dispose();
 
         let getButtonState = this.pin.read.bind(this.pin);
+
         this.loopHandler = new ButtonHoldLoopHandler(
             getButtonState,
-            callbackRepeat,
-            callbackStart,
-            callbackEnd,
-            transitionMs,
-            intervalMs);
+            config.callbackRepeat,
+            config.callbackStart,
+            config.callbackEnd,
+            config.transitionMs ?? 500,
+            config.intervalMs ?? 500);
 
         return () => {
             this.loopHandler?.dispose();

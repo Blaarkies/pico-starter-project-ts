@@ -3,8 +3,8 @@ import { waitForDuration } from '../time';
 
 export class ButtonHoldLoopHandler {
 
-    timeDown = 0;
-    timeUp = 0;
+    timeAtPress = 0;
+    timeAtRelease = 0;
 
     private transitionHandle = 0;
     private loopActive: boolean;
@@ -20,7 +20,7 @@ export class ButtonHoldLoopHandler {
     }
 
     update() {
-        let isPressing = this.timeDown > this.timeUp;
+        let isPressing = this.timeAtPress > this.timeAtRelease;
 
         // Button pressed
         if (isPressing) {
@@ -30,31 +30,32 @@ export class ButtonHoldLoopHandler {
             this.transitionHandle = setTimeout(async () => {
                 this.callbackStart?.();
 
-                if (!this.callbackRepeat) {
-                    return;
-                }
+                if (this.callbackRepeat) {
+                    this.loopActive = true;
 
-                this.loopActive = true;
-                for (let iteration = 0; this.loopActive; iteration++) {
-                    if (this.getButtonState() === HIGH) {
-                        this.loopActive = false;
+                    for (let iteration = 0; this.loopActive; iteration++) {
+                        if (this.getButtonState() === HIGH) {
+                            this.loopActive = false;
+                            break;
+                        }
+
+                        this.callbackRepeat(iteration);
+                        await waitForDuration(this.intervalMs);
                     }
-
-                    this.callbackRepeat(iteration);
-                    await waitForDuration(this.intervalMs);
                 }
-
-                this.callbackEnd?.();
             }, this.transitionMs) as unknown as number;
+
             return;
         }
 
         // Button released
+        this.callbackEnd?.();
         this.loopActive = false;
         clearTimeout(this.transitionHandle);
     }
 
     dispose() {
+        this.callbackEnd?.();
         this.loopActive = false;
         clearTimeout(this.transitionHandle);
     }
