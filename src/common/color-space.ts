@@ -1,3 +1,6 @@
+export type ColorHsl = [h: number, s: number, l: number];
+export type ColorRgb = [r: number, g: number, b: number];
+
 /**
  * Return the RGB representation given an HSL value
  * @example `hslToRgb(0, 1, 0.5)` returns `[255, 0, 0]`
@@ -5,7 +8,7 @@
  * @param s Saturation range [0-1]
  * @param l Luminosity range [0-1]
  */
-export function hslToRgb(h: number, s: number, l: number): number[] {
+export function hslToRgb(h: number, s: number, l: number): ColorRgb {
     let r: number;
     let g: number;
     let b: number;

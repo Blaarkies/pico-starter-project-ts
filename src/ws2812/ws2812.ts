@@ -15,13 +15,13 @@ import { reverseBits } from '../common';
  * reversed beforehand
  * @see valueFromColor
  */
-export class WS2812 {
+export class Ws2812 {
 
     private stateMachine: StateMachine;
     private buffer: Uint32Array;
 
-    constructor(pin: number, ledAmount: number) {
-        if (ledAmount < 1) {
+    constructor(pin: number, readonly ledAmount: number) {
+        if (!(ledAmount > 0)) {
             throw Error(`Cannot create WS2812 instance with no LEDs`);
         }
 
@@ -48,8 +48,7 @@ export class WS2812 {
 
         this.stateMachine.active(true);
 
-        this.buffer = new Uint32Array(ledAmount)
-            .fill(0x0);
+        this.buffer = new Uint32Array(ledAmount);
     }
 
     static valueFromColor(rgb: number[]): number {
@@ -61,7 +60,7 @@ export class WS2812 {
 
     /**
      * Set the data values for all LEDs with a new buffer
-     * @see WS2812
+     * @see Ws2812
      */
     replaceBuffer(newBuffer: Uint32Array) {
         this.buffer = newBuffer;
@@ -74,14 +73,22 @@ export class WS2812 {
 
     /**
      * Set the data value for a specific LED in the buffer
-     * @see WS2812
+     * @see Ws2812
      */
     setLed(index: number, value: number) {
         this.buffer[index] = value;
     }
 
     setLedColor(index: number, rgb: number[]) {
-        this.setLed(index, WS2812.valueFromColor(rgb));
+        this.setLed(index, Ws2812.valueFromColor(rgb));
+    }
+
+    fillAllColor(rgb: number[]) {
+        let value = Ws2812.valueFromColor(rgb);
+        let count = this.buffer.length;
+        for (let i = 0; i < count; i++) {
+            this.buffer[i] = value;
+        }
     }
 
 }

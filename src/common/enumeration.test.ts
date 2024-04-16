@@ -41,13 +41,14 @@ describe('pickRandomElement()', () => {
     ${0}   | ${1} 
     ${.5}  | ${2} 
     ${1}   | ${3} 
-    `('given a list, when Math.random()=$given, it returns element #$expected', () => {
+    `('given a list, when Math.random()=$given, it returns element #$expected',
+        ({given, expected}) => {
         spyMathRandom = jest.spyOn(global.Math, 'random')
-            .mockReturnValue(0);
+            .mockReturnValue(given);
 
         let result = pickRandomElement(list);
 
-        expect(result).toBe(1);
+        expect(result).toBe(expected);
     });
 
 });
@@ -55,11 +56,11 @@ describe('pickRandomElement()', () => {
 describe('sum()', () => {
 
     test.each`
-      list        | expected
-      ${[]}       | ${0}
-      ${[0]}      | ${0}
-      ${[0, 0]}    | ${0}
-      ${[1, 1]}    | ${2}
+      list          | expected
+      ${[]}         | ${0}
+      ${[0]}        | ${0}
+      ${[0, 0]}     | ${0}
+      ${[1, 1]}     | ${2}
       ${[1, 2, 3]}  | ${6}
       `('given list $list, it returns the sum=$expected',
         ({list, expected}) => {

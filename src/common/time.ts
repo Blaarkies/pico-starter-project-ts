@@ -18,11 +18,15 @@ export function sequencedInterval(sequence: number[]): SequenceIntervalSubject {
     let asyncSyntaxFn = async () => {
         // Loop until `source$.stopped` is true. Keep the iteration index
         let count = sequence.length;
-        for (let iteration = 0; !source$.stopped; iteration++) {
+        for (let iteration = 0; true; iteration++) {
             let index = iteration % count;
             let durationMs = sequence[index];
 
             await waitForDuration(durationMs);
+            if (source$.stopped) {
+                break;
+            }
+
             source$.next(iteration);
         }
     };

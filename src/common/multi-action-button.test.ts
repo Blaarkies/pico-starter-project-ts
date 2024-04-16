@@ -277,12 +277,14 @@ describe('MultiActionButton', () => {
 
         afterAll(() => {
             jest.useRealTimers();
+            jest.clearAllTimers();
         });
 
         beforeEach(() => {
             gpioController.restore();
             mockMillis.mockReturnValue(0);
             button = new MultiActionButton(pin);
+            jest.clearAllTimers();
         });
 
         test('callbackStart runs when button is held down for transitionMs' +
