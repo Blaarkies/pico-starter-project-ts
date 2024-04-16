@@ -1,53 +1,26 @@
-import { subject } from '../common';
+import { subject } from '../../common';
+import {
+    AbstractSimulatedController,
+    MockedUsages,
+} from '../abstract-simulated-controller';
+import {
+    GpioState,
+    IrqEvent,
+    IrqStatusType,
+} from './types';
 import { SimulatedGpio } from './simulated-gpio';
 
-type GpioState = typeof LOW | typeof HIGH;
-
-type IrqStatusType =
-    | typeof FALLING
-    | typeof RISING
-    | typeof CHANGE;
-
-type IrqEvent = { pin: number, status: IrqStatusType };
-
-type MethodName = 'constructor' | keyof SimulatedGpio;
-
-type MockedUsages = { constructor: jest.Mock; }
-    & { [key in (keyof SimulatedGpio)]: jest.Mock[]; };
-
-export class SimulatedGpioController {
+export class SimulatedGpioController
+    extends AbstractSimulatedController<SimulatedGpio> {
 
     irqEvent$ = subject<IrqEvent>();
 
-    private usages = this.getDefaultUsages();
     private gpioStates: GpioState[] = [];
 
-    addMethodCall(methodName: MethodName, pin: number, ...args) {
-        if (methodName === 'constructor') {
-            this.usages.constructor(...args);
-            return;
-        }
-
-        let methodList = this.usages[methodName];
-        let mockFn = methodList[pin];
-        if (!mockFn) {
-            methodList[pin] = jest.fn();
-        }
-
-        methodList[pin](...args);
-    }
-
-    restore() {
-        this.usages = this.getDefaultUsages();
+    override restore() {
+        super.restore();
         this.gpioStates = [];
         this.irqEvent$ = subject<IrqEvent>();
-    }
-
-    getMock(methodName: MethodName, pin?: number): jest.Mock {
-        return methodName === 'constructor'
-               ? this.usages.constructor
-               : this.usages[methodName][pin]
-                   ?? jest.fn();
     }
 
     triggerIrq(pin: number, status: IrqStatusType, updateGpioState = true) {
@@ -78,9 +51,9 @@ export class SimulatedGpioController {
         return this.gpioStates[pin];
     }
 
-    private getDefaultUsages(): MockedUsages {
+    override getDefaultUsages(): MockedUsages<SimulatedGpio> {
         return {
-            constructor: jest.fn(),
+            ...super.getDefaultUsages(),
             pin: [],
             mode: [],
             read: [],
