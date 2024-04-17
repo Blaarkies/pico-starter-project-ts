@@ -30,6 +30,7 @@ export abstract class AbstractSimulatedController<T> {
 
     restore() {
         this.usages = this.getDefaultUsages();
+        this.lastId = 0;
     }
 
     getMock(methodName: MethodName<T>, id?: number): jest.Mock {

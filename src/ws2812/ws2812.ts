@@ -3,7 +3,10 @@ import {
     PIO,
     StateMachine,
 } from 'rp2';
-import { reverseBits } from '../common';
+import {
+    ColorRgb,
+    reverseBits,
+} from '../common';
 
 /**
  * Controller for
@@ -51,11 +54,16 @@ export class Ws2812 {
         this.buffer = new Uint32Array(ledAmount);
     }
 
-    static valueFromColor(rgb: number[]): number {
+    static valueFromColor(rgb: ColorRgb): number {
         let [r, g, b] = rgb;
         return reverseBits(b) << 16
             | reverseBits(r) << 8
             | reverseBits(g);
+    }
+
+    /** Updates the LED device with new data */
+    write() {
+        this.stateMachine.put(this.buffer);
     }
 
     /**
@@ -66,11 +74,6 @@ export class Ws2812 {
         this.buffer = newBuffer;
     }
 
-    /** Updates the LED device with new data */
-    write() {
-        this.stateMachine.put(this.buffer);
-    }
-
     /**
      * Set the data value for a specific LED in the buffer
      * @see Ws2812
@@ -79,11 +82,11 @@ export class Ws2812 {
         this.buffer[index] = value;
     }
 
-    setLedColor(index: number, rgb: number[]) {
+    setLedColor(index: number, rgb: ColorRgb) {
         this.setLed(index, Ws2812.valueFromColor(rgb));
     }
 
-    fillAllColor(rgb: number[]) {
+    fillAllColor(rgb: ColorRgb) {
         let value = Ws2812.valueFromColor(rgb);
         let count = this.buffer.length;
         for (let i = 0; i < count; i++) {
