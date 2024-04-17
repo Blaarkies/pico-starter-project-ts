@@ -6,7 +6,7 @@ import {
     subject,
 } from './common';
 import { adcToCelsius } from './common/unit-of-measure';
-import { WS2812 } from './ws2812/ws2812';
+import { WS2812 } from './devices/ws2812/ws2812';
 
 
 // Display results in debug console

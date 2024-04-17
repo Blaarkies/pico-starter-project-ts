@@ -3,4 +3,4 @@ export * from './color-space';
 export * from './enumeration';
 export * from './time';
 export * from './stream';
-export * from './multi-action-button';
+export * from '../devices/multi-action-button/multi-action-button';

@@ -6,7 +6,7 @@ import {
 import {
     ColorRgb,
     reverseBits,
-} from '../common';
+} from '../../common';
 
 /**
  * Controller for

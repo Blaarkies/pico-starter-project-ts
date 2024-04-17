@@ -1,4 +1,4 @@
-import { ButtonHoldConfig } from '../multi-action-button';
+import { ButtonLongPressConfig } from '../../devices/multi-action-button/multi-action-button';
 import { waitForDuration } from '../time';
 
 export class ButtonHoldLoopHandler {
@@ -11,11 +11,11 @@ export class ButtonHoldLoopHandler {
 
     constructor(
         private getButtonState: () => typeof LOW | typeof HIGH,
-        private callbackRepeat: ButtonHoldConfig['callbackRepeat'],
-        private callbackStart: ButtonHoldConfig['callbackStart'],
-        private callbackEnd: ButtonHoldConfig['callbackEnd'],
-        public transitionMs: ButtonHoldConfig['transitionMs'],
-        private intervalMs: ButtonHoldConfig['intervalMs'],
+        private callbackRepeat: ButtonLongPressConfig['callbackRepeat'],
+        private callbackStart: ButtonLongPressConfig['callbackStart'],
+        private callbackEnd: ButtonLongPressConfig['callbackEnd'],
+        public transitionMs: ButtonLongPressConfig['transitionMs'],
+        private intervalMs: ButtonLongPressConfig['intervalMs'],
     ) {
     }
 

@@ -1,5 +1,5 @@
 import { GPIO } from 'gpio';
-import { ButtonHoldLoopHandler } from './internal/button-hold-loop-handler';
+import { ButtonHoldLoopHandler } from '../../common/internal/button-hold-loop-handler';
 
 type DisposeFn = () => void;
 
@@ -7,7 +7,7 @@ type ListenerAsyncFn = (...args: Parameters<ListenerFn>) => Promise<ReturnType<L
 type ButtonActionFn = ListenerFn | ListenerAsyncFn;
 
 /**
- * Defines the configuration of a press-hold button.
+ * Defines the configuration of a long press button.
  *
  * When the button is held down for a duration defined by `transitionMs`,
  * the `callbackStart` function is called and a loop begins to
@@ -26,7 +26,7 @@ type ButtonActionFn = ListenerFn | ListenerAsyncFn;
  * transitionMs=4; intervalMs=3; ^=up; _=down;
  *   S=start; R=repeat; E=end; |=delimiter
  */
-export interface ButtonHoldConfig {
+export interface ButtonLongPressConfig {
     /** Called repeatedly while button is held down */
     callbackRepeat?: (iteration: number) => void;
     /** Called when transition starts */
@@ -42,13 +42,18 @@ export interface ButtonHoldConfig {
 /**
  * Manages multiple actions on a single hardware button.
  *
+ * Examples: Touch and hold an app icon on a mobile/tablet to initiate
+ * a 'long press', allowing you to drag the icon around. This is extra
+ * functionality on the same "button". We can do this with physical
+ * hardware buttons as well.
+ *
  * Supports running a list of callbacks for each type of change
  * (pressing, releasing, any state change).
  *
- * Additionally supports [press-and-hold]{@link ButtonHoldConfig} callbacks for:
- * - when transitioning to a hold state
+ * Additionally supports [long-press]{@link ButtonLongPressConfig} callbacks for:
+ * - transitioning to a hold state
  * - when held down during and after transitioning
- * - when releasing after a transition
+ * - releasing after a transition
  */
 export class MultiActionButton {
 
@@ -84,18 +89,19 @@ export class MultiActionButton {
                 this.pressFnSet.forEach(fn => fn());
             }
 
-            // onHold() callback
+            // onLongPress() callback
             if (this.loopHandler) {
-                this.manageHoldTransition(isPress, now);
+                this.manageLongPressTransition(isPress, now);
             } else if (!isPress) {
-                // Basic release functions only run when no OnHold function
-                // was added, else this gets handled by the loopHandler
+                // Basic release functions only run when no onLongPress
+                // function was added, else this gets handled by the
+                // loopHandler
                 this.releaseFnSet.forEach(fn => fn());
             }
         }, CHANGE);
     }
 
-    private manageHoldTransition(isPress: boolean, now: number) {
+    private manageLongPressTransition(isPress: boolean, now: number) {
         let lh = this.loopHandler;
 
         if (isPress) {
@@ -110,7 +116,7 @@ export class MultiActionButton {
 
         let releasedBeforeHold =
             (lh.timeAtRelease - lh.timeAtPress) < lh.transitionMs;
-        // Determine if this button release happened before a hold transition
+        // Determine if this button release happened before a long press transition
         if (releasedBeforeHold) {
             this.releaseFnSet.forEach(fn => fn());
         }
@@ -135,7 +141,7 @@ export class MultiActionButton {
         return () => this.changeFnSet.delete(callback);
     }
 
-    onHold(config: ButtonHoldConfig): DisposeFn {
+    onLongPress(config: ButtonLongPressConfig): DisposeFn {
         this.loopHandler?.dispose();
 
         let getButtonState = this.pin.read.bind(this.pin);

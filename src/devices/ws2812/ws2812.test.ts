@@ -11,9 +11,9 @@ import {
     asmController,
     gpioController,
     stateMachineController,
-} from '../test';
-import { SimulatedAsm } from '../test/asm';
-import { SimulatedStateMachine } from '../test/state-machine';
+} from '../../test';
+import { SimulatedAsm } from '../../test/asm';
+import { SimulatedStateMachine } from '../../test/state-machine';
 import { Ws2812 } from './ws2812';
 
 describe('Ws2812', () => {

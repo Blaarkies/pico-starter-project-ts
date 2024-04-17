@@ -1,7 +1,7 @@
 import {
     gpioController,
     mockMillis,
-} from '../test';
+} from '../../test';
 import { MultiActionButton } from './multi-action-button';
 
 describe('MultiActionButton', () => {
@@ -266,7 +266,7 @@ describe('MultiActionButton', () => {
         });
     });
 
-    describe('onHold()', () => {
+    describe('onLongPress()', () => {
 
         let button: MultiActionButton;
         let transitionMs = 500;
@@ -293,7 +293,7 @@ describe('MultiActionButton', () => {
             mockMillis.mockReturnValue(now);
 
             let callbackStart = jest.fn();
-            button.onHold({
+            button.onLongPress({
                 callbackStart,
                 transitionMs,
             });
@@ -314,7 +314,7 @@ describe('MultiActionButton', () => {
             mockMillis.mockReturnValue(now);
 
             let callbackEnd = jest.fn();
-            button.onHold({
+            button.onLongPress({
                 callbackEnd,
                 transitionMs,
             });
@@ -338,7 +338,7 @@ describe('MultiActionButton', () => {
             mockMillis.mockReturnValue(now);
 
             let callbackRepeat = jest.fn();
-            button.onHold({
+            button.onLongPress({
                 callbackRepeat,
                 transitionMs,
                 intervalMs,
@@ -369,7 +369,7 @@ describe('MultiActionButton', () => {
             let now = 100;
             mockMillis.mockReturnValue(now);
 
-            button.onHold({transitionMs});
+            button.onLongPress({transitionMs});
             let callback = jest.fn();
             button.onRelease(callback);
 
