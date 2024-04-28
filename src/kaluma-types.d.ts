@@ -59,6 +59,25 @@ declare module 'rp2' {
 
         put(value: number | Uint32Array): void;
 
+        /**
+         * Returns the number of elements in the state machine's RX FIFO. The
+         * size of RXFIFO is 0 in the PIO.FIFO_JOIN_TX mode, 4 in the
+         * PIO.FIFO_JOIN_NONE mode, 8 in the PIO.FIFO_JOIN_RX mode. This
+         * buffer size can be used to check RXFIFO full condition
+         */
+        rxfifo(): number;
+
+        /**
+         * Returns the number of elements in the state machine's TX FIFO. The
+         * size of RXFIFO is 0 in the PIO.FIFO_JOIN_RX mode, 4 in the
+         * PIO.FIFO_JOIN_NONE mode, 8 in the PIO.FIFO_JOIN_TX mode. This
+         * buffer size can be used to check TXFIFO full condition.
+         */
+        txfifo(): number;
+
+        /** Clear the state machine's TX FIFO and RX FIFO */
+        clearFIFOs(): void;
+
         irq(handler: (interrupt: number) => void): number;
     }
 }

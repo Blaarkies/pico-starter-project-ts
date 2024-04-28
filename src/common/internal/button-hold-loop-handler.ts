@@ -9,11 +9,15 @@ export class ButtonHoldLoopHandler {
     private transitionHandle = 0;
     private loopActive: boolean;
 
+    get wasReleasedAsShortPress(): boolean {
+        return (this.timeAtRelease - this.timeAtPress) < this.transitionMs;
+    }
+
     constructor(
         private getButtonState: () => typeof LOW | typeof HIGH,
-        private callbackRepeat: ButtonLongPressConfig['callbackRepeat'],
-        private callbackStart: ButtonLongPressConfig['callbackStart'],
-        private callbackEnd: ButtonLongPressConfig['callbackEnd'],
+        private repeatFn: ButtonLongPressConfig['repeatFn'],
+        private startFn: ButtonLongPressConfig['startFn'],
+        private endFn: ButtonLongPressConfig['endFn'],
         public transitionMs: ButtonLongPressConfig['transitionMs'],
         private intervalMs: ButtonLongPressConfig['intervalMs'],
     ) {
@@ -28,9 +32,9 @@ export class ButtonHoldLoopHandler {
             clearTimeout(this.transitionHandle);
 
             this.transitionHandle = setTimeout(async () => {
-                this.callbackStart?.();
+                this.startFn?.();
 
-                if (this.callbackRepeat) {
+                if (this.repeatFn) {
                     this.loopActive = true;
 
                     for (let iteration = 0; this.loopActive; iteration++) {
@@ -39,7 +43,7 @@ export class ButtonHoldLoopHandler {
                             break;
                         }
 
-                        this.callbackRepeat(iteration);
+                        this.repeatFn(iteration);
                         await waitForDuration(this.intervalMs);
                     }
                 }
@@ -49,13 +53,15 @@ export class ButtonHoldLoopHandler {
         }
 
         // Button released
-        this.callbackEnd?.();
+        if (!this.wasReleasedAsShortPress) {
+            this.endFn?.();
+        }
         this.loopActive = false;
         clearTimeout(this.transitionHandle);
     }
 
     dispose() {
-        this.callbackEnd?.();
+        this.endFn?.();
         this.loopActive = false;
         clearTimeout(this.transitionHandle);
     }

@@ -287,81 +287,81 @@ describe('MultiActionButton', () => {
             jest.clearAllTimers();
         });
 
-        test('callbackStart runs when button is held down for transitionMs' +
+        test('startFn runs when button is held down for transitionMs' +
             '', () => {
             let now = 100;
             mockMillis.mockReturnValue(now);
 
-            let callbackStart = jest.fn();
+            let startFn = jest.fn();
             button.onLongPress({
-                callbackStart,
+                startFn,
                 transitionMs,
             });
 
             gpioController.triggerIrq(pin, FALLING);
-            expect(callbackStart).not.toHaveBeenCalled();
+            expect(startFn).not.toHaveBeenCalled();
 
             jest.advanceTimersByTime(transitionMs - 1);
-            expect(callbackStart).not.toHaveBeenCalled();
+            expect(startFn).not.toHaveBeenCalled();
 
             jest.advanceTimersByTime(1);
-            expect(callbackStart).toHaveBeenCalled();
+            expect(startFn).toHaveBeenCalled();
         });
 
-        test('callbackEnd runs when button is released after transitionMs' +
+        test('endFn runs when button is released after transitionMs' +
             '', () => {
             let now = 100;
             mockMillis.mockReturnValue(now);
 
-            let callbackEnd = jest.fn();
+            let endFn = jest.fn();
             button.onLongPress({
-                callbackEnd,
+                endFn,
                 transitionMs,
             });
 
             gpioController.triggerIrq(pin, FALLING);
-            expect(callbackEnd).not.toHaveBeenCalled();
+            expect(endFn).not.toHaveBeenCalled();
 
             mockMillis.mockReturnValue(now += transitionMs);
             jest.advanceTimersByTime(transitionMs);
-            expect(callbackEnd).not.toHaveBeenCalled();
+            expect(endFn).not.toHaveBeenCalled();
 
             gpioController.triggerIrq(pin, RISING);
-            expect(callbackEnd).toHaveBeenCalled();
+            expect(endFn).toHaveBeenCalled();
         });
 
-        test('callbackRepeat runs repeatedly when button is held down after ' +
+        test('repeatFn runs repeatedly when button is held down after ' +
             'transitionMs', async () => {
 
             let now = 100;
             let intervalMs = 100;
             mockMillis.mockReturnValue(now);
 
-            let callbackRepeat = jest.fn();
+            let repeatFn = jest.fn();
             button.onLongPress({
-                callbackRepeat,
+                repeatFn,
                 transitionMs,
                 intervalMs,
             });
 
             gpioController.triggerIrq(pin, FALLING);
-            expect(callbackRepeat).not.toHaveBeenCalled();
+            expect(repeatFn).not.toHaveBeenCalled();
 
             await jest.advanceTimersByTimeAsync(transitionMs);
-            expect(callbackRepeat).toHaveBeenCalledTimes(1);
+            expect(repeatFn).toHaveBeenCalledTimes(1);
 
             await jest.advanceTimersByTimeAsync(intervalMs);
-            expect(callbackRepeat).toHaveBeenCalledTimes(2);
+            expect(repeatFn).toHaveBeenCalledTimes(2);
 
             // Confirm that it stopped repeating after releasing button
-            callbackRepeat.mockReset();
+            repeatFn.mockReset();
 
             gpioController.triggerIrq(pin, RISING);
             await jest.advanceTimersByTimeAsync(intervalMs);
-            expect(callbackRepeat).not.toHaveBeenCalled();
+            expect(repeatFn).not.toHaveBeenCalled();
 
             await jest.advanceTimersByTimeAsync(intervalMs);
-            expect(callbackRepeat).not.toHaveBeenCalled();
+            expect(repeatFn).not.toHaveBeenCalled();
         });
 
         test('onRelease callback run when button releases before transitionMs' +

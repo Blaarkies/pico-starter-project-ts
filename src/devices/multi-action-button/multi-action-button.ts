@@ -10,10 +10,10 @@ type ButtonActionFn = ListenerFn | ListenerAsyncFn;
  * Defines the configuration of a long press button.
  *
  * When the button is held down for a duration defined by `transitionMs`,
- * the `callbackStart` function is called and a loop begins to
- * repeatedly call the `callbackRepeat` function at a tempo
+ * the `startFn` function is called and a loop begins to
+ * repeatedly call the `repeatFn` function at a tempo
  * defined by `intervalMs`. When the button is finally released,
- * the loop stops and the `callbackEnd` function is called.
+ * the loop stops and the `endFn` function is called.
  *
  * Failing to hold down the button for the duration set by
  * `transitionMs` will have no effect.
@@ -28,14 +28,14 @@ type ButtonActionFn = ListenerFn | ListenerAsyncFn;
  */
 export interface ButtonLongPressConfig {
     /** Called repeatedly while button is held down */
-    callbackRepeat?: (iteration: number) => void;
+    repeatFn?: (iteration: number) => void;
     /** Called when transition starts */
-    callbackStart?: ButtonActionFn;
+    startFn?: ButtonActionFn;
     /** Called when transition ends */
-    callbackEnd?: ButtonActionFn;
+    endFn?: ButtonActionFn;
     /** Amount of time to hold down the button */
     transitionMs?: number;
-    /** Interval duration for calls to `callbackRepeat`*/
+    /** Interval duration for calls to `repeatFn`*/
     intervalMs?: number;
 }
 
@@ -64,7 +64,7 @@ export class MultiActionButton {
     private loopHandler: ButtonHoldLoopHandler;
     private lastEventTimestamp: number;
 
-    constructor(pinIndex: number, debounceDurationMs = 50) {
+    constructor(pinIndex: number, debounceDurationMs = 30) {
         this.lastEventTimestamp = millis() - debounceDurationMs;
 
         this.pin = new GPIO(pinIndex, INPUT_PULLUP);
@@ -94,8 +94,8 @@ export class MultiActionButton {
                 this.manageLongPressTransition(isPress, now);
             } else if (!isPress) {
                 // Basic release functions only run when no onLongPress
-                // function was added, else this gets handled by the
-                // loopHandler
+                // function was added, else this gets handled by
+                // manageLongPressTransition()
                 this.releaseFnSet.forEach(fn => fn());
             }
         }, CHANGE);
@@ -114,10 +114,7 @@ export class MultiActionButton {
         lh.timeAtRelease = now;
         lh.update();
 
-        let releasedBeforeHold =
-            (lh.timeAtRelease - lh.timeAtPress) < lh.transitionMs;
-        // Determine if this button release happened before a long press transition
-        if (releasedBeforeHold) {
+        if (lh.wasReleasedAsShortPress) {
             this.releaseFnSet.forEach(fn => fn());
         }
     }
@@ -148,9 +145,9 @@ export class MultiActionButton {
 
         this.loopHandler = new ButtonHoldLoopHandler(
             getButtonState,
-            config.callbackRepeat,
-            config.callbackStart,
-            config.callbackEnd,
+            config.repeatFn,
+            config.startFn,
+            config.endFn,
             config.transitionMs ?? 500,
             config.intervalMs ?? 500);
 
