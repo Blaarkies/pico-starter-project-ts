@@ -60,6 +60,7 @@ export class MultiActionButton {
     private pressFnSet = new Set<ButtonActionFn>();
     private releaseFnSet = new Set<ButtonActionFn>();
     private changeFnSet = new Set<ButtonActionFn>();
+
     private readonly pin: GPIO;
     private loopHandler: ButtonHoldLoopHandler;
     private lastEventTimestamp: number;
@@ -82,11 +83,11 @@ export class MultiActionButton {
             let isPress = status === FALLING;
 
             // onChange() callbacks
-            this.changeFnSet.forEach(fn => fn());
+            this.changeFnSet.forEach(fn => fn?.());
 
             // onPress() callbacks
             if (isPress) {
-                this.pressFnSet.forEach(fn => fn());
+                this.pressFnSet.forEach(fn => fn?.());
             }
 
             // onLongPress() callback
@@ -96,7 +97,7 @@ export class MultiActionButton {
                 // Basic release functions only run when no onLongPress
                 // function was added, else this gets handled by
                 // manageLongPressTransition()
-                this.releaseFnSet.forEach(fn => fn());
+                this.releaseFnSet.forEach(fn => fn?.());
             }
         }, CHANGE);
     }
@@ -115,7 +116,7 @@ export class MultiActionButton {
         lh.update();
 
         if (lh.wasReleasedAsShortPress) {
-            this.releaseFnSet.forEach(fn => fn());
+            this.releaseFnSet.forEach(fn => fn?.());
         }
     }
 

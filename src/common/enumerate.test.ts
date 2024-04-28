@@ -2,7 +2,7 @@ import {
     makeNumberList,
     pickRandomElement,
     sum,
-} from './enumeration';
+} from './enumerate';
 
 describe('makeNumberList()', () => {
 
