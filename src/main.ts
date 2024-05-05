@@ -1,4 +1,5 @@
 import { interval } from 'kefir';
+import { LED } from 'led';
 import {
     hslToRgb,
     makeNumberList,
@@ -6,7 +7,7 @@ import {
     subject,
 } from './common';
 import { adcToCelsius } from './common/unit-of-measure';
-import { WS2812 } from './devices/ws2812/ws2812';
+import { Ws2812 } from './devices';
 
 
 // Display results in debug console
@@ -23,12 +24,11 @@ Potentiometer: ${output.potentiometer}
 `));
 
 
-// Blink internal LED
-let ledPin = board.LED;
-pinMode(ledPin, OUTPUT);
+// Blink internal
+const internalLed = new LED(board.LED);
 let wink$ = sequencedInterval([100, 800, 300, 400, 100]);
 wink$.onValue(() => {
-    digitalToggle(ledPin);
+    internalLed.toggle();
 });
 
 
@@ -48,7 +48,6 @@ board.button(buttonAPin)
         console.log(`Button A was pressed!`);
     });
 
-
 let buttonBPin = 4;
 board.button(buttonBPin)
     .addListener('click', () => {
@@ -65,6 +64,7 @@ interval(100, 0).onValue(() => {
     let threshold = .05;
     let hasDifference = Math.abs(previousPotValue - newValue) > threshold;
 
+    // Blocks small changes (due to signal noise) from flooding the output
     if (hasDifference) {
         previousPotValue = newValue;
         let barLength = 15;
@@ -81,7 +81,7 @@ interval(100, 0).onValue(() => {
 
 // WS2812 - Individually addressable led strip
 let pixelsPin = 2;
-let pixels = new WS2812(pixelsPin, 2);
+let pixels = new Ws2812(pixelsPin, 2);
 interval(150, null)
     .scan((acc, _) => acc + 1, -1)
     .onValue(i => {

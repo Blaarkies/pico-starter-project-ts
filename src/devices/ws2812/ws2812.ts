@@ -11,12 +11,22 @@ import {
 /**
  * Controller for
  * [WS2812 devices]{@link https://duckduckgo.com/?q=WS2812+devices+images}
+ * [Data sheet]{@link https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf}
  *
+ * @description
  * Important: The data channel expects a Uint32Array defining the color for each LED
  * - Data format order example: `0x00BBRRGG` (`BB`=Blue, `RR`=Red, `GG`=Green)
- * - Each 8 bit byte is read in reverse bit order on the device and thus needs to be
+ * - Each 8 bit byte is read in reverse bit order through the PIO ASM or device and needs to be
  * reversed beforehand
  * @see valueFromColor
+ *
+ * @example
+ * // 12 LED device with data connected at Pin#2
+ * let myPixels = new Ws2812(2, 12);
+ * // Set color of first LED to Lime Green
+ * myPixels.setLedColor(0, [128, 255, 0]);
+ * // Output the data to the LED device
+ * myPixels.write();
  */
 export class Ws2812 {
 

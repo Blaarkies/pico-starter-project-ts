@@ -1,5 +1,5 @@
-import { ButtonLongPressConfig } from '../../devices/multi-action-button/multi-action-button';
-import { waitForDuration } from '../time';
+import { waitForDuration } from '../../../common';
+import { ButtonLongPressConfig } from '../multi-action-button';
 
 export class ButtonHoldLoopHandler {
 
@@ -14,7 +14,7 @@ export class ButtonHoldLoopHandler {
     }
 
     constructor(
-        private getButtonState: () => typeof LOW | typeof HIGH,
+        private getButtonState: () => number,
         private repeatFn: ButtonLongPressConfig['repeatFn'],
         private startFn: ButtonLongPressConfig['startFn'],
         private endFn: ButtonLongPressConfig['endFn'],

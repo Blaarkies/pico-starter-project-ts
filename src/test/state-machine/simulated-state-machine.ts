@@ -35,4 +35,15 @@ export class SimulatedStateMachine implements StateMachine {
         return this.availableId;
     }
 
+    clearFIFOs(): void {
+    }
+
+    rxfifo(): number {
+        return 0;
+    }
+
+    txfifo(): number {
+        return 0;
+    }
+
 }

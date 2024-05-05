@@ -10,10 +10,10 @@ jest.mock('rp2', () => ({
 import {
     asmController,
     gpioController,
+    SimulatedAsm,
+    SimulatedStateMachine,
     stateMachineController,
 } from '../../test';
-import { SimulatedAsm } from '../../test/asm';
-import { SimulatedStateMachine } from '../../test/state-machine';
 import { Ws2812 } from './ws2812';
 
 describe('Ws2812', () => {

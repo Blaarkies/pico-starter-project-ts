@@ -1,5 +1,5 @@
 import {
-    gpioController,
+    boardController,
     mockMillis,
 } from '../../test';
 import { MultiActionButton } from './multi-action-button';
@@ -10,39 +10,40 @@ describe('MultiActionButton', () => {
 
     describe('constructor()', () => {
 
-        beforeEach(() => gpioController.restore());
+        beforeEach(() => boardController.restore());
 
         test('sets the correct pin', () => {
             new MultiActionButton(pin);
 
-            let mock = gpioController.getMock('constructor');
+            let mock = boardController.mocks.pinMode;
             expect(mock).toHaveBeenCalled();
-            expect(mock).toHaveBeenCalledWith(
-                pin, INPUT_PULLUP);
+            expect(mock).toHaveBeenCalledWith(pin, INPUT_PULLUP);
         });
 
-        test('sets an irq event', () => {
+        test('sets a watch on the pin', () => {
             new MultiActionButton(pin);
 
-            let mock = gpioController.getMock('irq', pin);
+            let mock = boardController.mocks.setWatch;
             expect(mock).toHaveBeenCalled();
             expect(mock).toHaveBeenCalledWith(
-                expect.any(Function), CHANGE);
+                expect.any(Function), pin, CHANGE, expect.any(Number));
         });
     });
 
     describe('dispose()', () => {
 
-        beforeEach(() => gpioController.restore());
+        beforeEach(() => boardController.restore());
 
-        test('removes the irq on the pin', () => {
+        test('removes the watch', () => {
+            let watchId = 1;
+            boardController.setWatchId = watchId;
+
             let button = new MultiActionButton(pin);
-
             button.dispose();
 
-            let mock = gpioController.getMock('irq', pin);
+            let mock = boardController.mocks.clearWatch;
             expect(mock).toHaveBeenCalled();
-            expect(mock).toHaveBeenLastCalledWith(undefined);
+            expect(mock).toHaveBeenLastCalledWith(watchId);
         });
     });
 
@@ -51,7 +52,7 @@ describe('MultiActionButton', () => {
         let button: MultiActionButton;
 
         beforeEach(() => {
-            gpioController.restore();
+            boardController.restore();
             mockMillis.mockReturnValue(0);
             button = new MultiActionButton(pin);
         });
@@ -60,22 +61,7 @@ describe('MultiActionButton', () => {
             let callback = jest.fn();
             button.onPress(callback);
 
-            gpioController.triggerIrq(pin, FALLING);
-
-            expect(callback).toHaveBeenCalled();
-        });
-
-        test('callback runs when button presses long after a previous ' +
-            'event', () => {
-            let callback = jest.fn();
-            button.onPress(callback);
-
-            // Trigger a button release, check that it is ignored
-            gpioController.triggerIrq(pin, RISING);
-            expect(callback).not.toHaveBeenCalled();
-
-            mockMillis.mockReturnValue(500);
-            gpioController.triggerIrq(pin, FALLING);
+            boardController.triggerIrq(pin, FALLING);
 
             expect(callback).toHaveBeenCalled();
         });
@@ -86,7 +72,7 @@ describe('MultiActionButton', () => {
 
             disposeFn();
 
-            gpioController.triggerIrq(pin, FALLING);
+            boardController.triggerIrq(pin, FALLING);
 
             expect(callback).not.toHaveBeenCalled();
         });
@@ -95,29 +81,8 @@ describe('MultiActionButton', () => {
             let callback = jest.fn();
             button.onPress(callback);
 
-            gpioController.triggerIrq(pin, RISING);
+            boardController.triggerIrq(pin, RISING);
             expect(callback).not.toHaveBeenCalled();
-
-            gpioController.triggerIrq(pin, CHANGE);
-            expect(callback).not.toHaveBeenCalled();
-        });
-
-        test('noisy events are ignored', () => {
-            let now = 0;
-
-            let callback = jest.fn();
-            button.onPress(callback);
-
-            gpioController.triggerIrq(pin, FALLING);
-            expect(callback).toHaveBeenCalled();
-
-            mockMillis.mockReturnValue(now += 5);
-            gpioController.triggerIrq(pin, RISING);
-
-            mockMillis.mockReturnValue(now += 5);
-            gpioController.triggerIrq(pin, FALLING);
-
-            expect(callback).toHaveBeenCalledTimes(1);
         });
     });
 
@@ -126,7 +91,7 @@ describe('MultiActionButton', () => {
         let button: MultiActionButton;
 
         beforeEach(() => {
-            gpioController.restore();
+            boardController.restore();
             mockMillis.mockReturnValue(0);
             button = new MultiActionButton(pin);
         });
@@ -135,7 +100,7 @@ describe('MultiActionButton', () => {
             let callback = jest.fn();
             button.onRelease(callback);
 
-            gpioController.triggerIrq(pin, RISING);
+            boardController.triggerIrq(pin, RISING);
 
             expect(callback).toHaveBeenCalled();
         });
@@ -146,11 +111,11 @@ describe('MultiActionButton', () => {
             button.onRelease(callback);
 
             // Trigger a button press, check that it is ignored
-            gpioController.triggerIrq(pin, FALLING);
+            boardController.triggerIrq(pin, FALLING);
             expect(callback).not.toHaveBeenCalled();
 
             mockMillis.mockReturnValue(500);
-            gpioController.triggerIrq(pin, RISING);
+            boardController.triggerIrq(pin, RISING);
 
             expect(callback).toHaveBeenCalled();
         });
@@ -161,7 +126,7 @@ describe('MultiActionButton', () => {
 
             disposeFn();
 
-            gpioController.triggerIrq(pin, RISING);
+            boardController.triggerIrq(pin, RISING);
 
             expect(callback).not.toHaveBeenCalled();
         });
@@ -170,27 +135,10 @@ describe('MultiActionButton', () => {
             let callback = jest.fn();
             button.onRelease(callback);
 
-            gpioController.triggerIrq(pin, FALLING);
+            boardController.triggerIrq(pin, FALLING);
             expect(callback).not.toHaveBeenCalled();
         });
 
-        test('noisy events are ignored', () => {
-            let now = 0;
-
-            let callback = jest.fn();
-            button.onRelease(callback);
-
-            gpioController.triggerIrq(pin, RISING);
-            expect(callback).toHaveBeenCalled();
-
-            mockMillis.mockReturnValue(now += 5);
-            gpioController.triggerIrq(pin, FALLING);
-
-            mockMillis.mockReturnValue(now += 5);
-            gpioController.triggerIrq(pin, RISING);
-
-            expect(callback).toHaveBeenCalledTimes(1);
-        });
     });
 
     describe('onChange()', () => {
@@ -198,7 +146,7 @@ describe('MultiActionButton', () => {
         let button: MultiActionButton;
 
         beforeEach(() => {
-            gpioController.restore();
+            boardController.restore();
             mockMillis.mockReturnValue(0);
             button = new MultiActionButton(pin);
         });
@@ -209,15 +157,15 @@ describe('MultiActionButton', () => {
             let callback = jest.fn();
             button.onChange(callback);
 
-            gpioController.triggerIrq(pin, RISING);
+            boardController.triggerIrq(pin, RISING);
             expect(callback).toHaveBeenCalled();
 
             mockMillis.mockReturnValue(now += 50);
-            gpioController.triggerIrq(pin, FALLING);
+            boardController.triggerIrq(pin, FALLING);
             expect(callback).toHaveBeenCalledTimes(2);
 
             mockMillis.mockReturnValue(now += 50);
-            gpioController.triggerIrq(pin, CHANGE);
+            boardController.triggerIrq(pin, CHANGE);
             expect(callback).toHaveBeenCalledTimes(3);
         });
 
@@ -227,11 +175,11 @@ describe('MultiActionButton', () => {
             button.onChange(callback);
 
             // Trigger a button press, check that it is ignored
-            gpioController.triggerIrq(pin, FALLING);
+            boardController.triggerIrq(pin, FALLING);
             expect(callback).toHaveBeenCalled();
 
             mockMillis.mockReturnValue(500);
-            gpioController.triggerIrq(pin, RISING);
+            boardController.triggerIrq(pin, RISING);
 
             expect(callback).toHaveBeenCalledTimes(2);
         });
@@ -242,27 +190,9 @@ describe('MultiActionButton', () => {
 
             disposeFn();
 
-            gpioController.triggerIrq(pin, RISING);
+            boardController.triggerIrq(pin, RISING);
 
             expect(callback).not.toHaveBeenCalled();
-        });
-
-        test('noisy events are ignored', () => {
-            let now = 0;
-
-            let callback = jest.fn();
-            button.onRelease(callback);
-
-            gpioController.triggerIrq(pin, RISING);
-            expect(callback).toHaveBeenCalled();
-
-            mockMillis.mockReturnValue(now += 5);
-            gpioController.triggerIrq(pin, FALLING);
-
-            mockMillis.mockReturnValue(now += 5);
-            gpioController.triggerIrq(pin, RISING);
-
-            expect(callback).toHaveBeenCalledTimes(1);
         });
     });
 
@@ -281,7 +211,7 @@ describe('MultiActionButton', () => {
         });
 
         beforeEach(() => {
-            gpioController.restore();
+            boardController.restore();
             mockMillis.mockReturnValue(0);
             button = new MultiActionButton(pin);
             jest.clearAllTimers();
@@ -298,7 +228,7 @@ describe('MultiActionButton', () => {
                 transitionMs,
             });
 
-            gpioController.triggerIrq(pin, FALLING);
+            boardController.triggerIrq(pin, FALLING);
             expect(startFn).not.toHaveBeenCalled();
 
             jest.advanceTimersByTime(transitionMs - 1);
@@ -319,14 +249,14 @@ describe('MultiActionButton', () => {
                 transitionMs,
             });
 
-            gpioController.triggerIrq(pin, FALLING);
+            boardController.triggerIrq(pin, FALLING);
             expect(endFn).not.toHaveBeenCalled();
 
             mockMillis.mockReturnValue(now += transitionMs);
             jest.advanceTimersByTime(transitionMs);
             expect(endFn).not.toHaveBeenCalled();
 
-            gpioController.triggerIrq(pin, RISING);
+            boardController.triggerIrq(pin, RISING);
             expect(endFn).toHaveBeenCalled();
         });
 
@@ -344,7 +274,7 @@ describe('MultiActionButton', () => {
                 intervalMs,
             });
 
-            gpioController.triggerIrq(pin, FALLING);
+            boardController.triggerIrq(pin, FALLING);
             expect(repeatFn).not.toHaveBeenCalled();
 
             await jest.advanceTimersByTimeAsync(transitionMs);
@@ -356,7 +286,7 @@ describe('MultiActionButton', () => {
             // Confirm that it stopped repeating after releasing button
             repeatFn.mockReset();
 
-            gpioController.triggerIrq(pin, RISING);
+            boardController.triggerIrq(pin, RISING);
             await jest.advanceTimersByTimeAsync(intervalMs);
             expect(repeatFn).not.toHaveBeenCalled();
 
@@ -373,14 +303,13 @@ describe('MultiActionButton', () => {
             let callback = jest.fn();
             button.onRelease(callback);
 
-            gpioController.triggerIrq(pin, FALLING);
+            boardController.triggerIrq(pin, FALLING);
 
             mockMillis.mockReturnValue(now += transitionMs - 1);
 
-            gpioController.triggerIrq(pin, RISING);
+            boardController.triggerIrq(pin, RISING);
 
             expect(callback).toHaveBeenCalled();
         });
     });
-
 });

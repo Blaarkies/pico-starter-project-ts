@@ -6,4 +6,4 @@ jest.mock('gpio', () => ({
 }), {virtual: true});
 
 export const gpioController = new SimulatedGpioController();
-export * from './simulated-gpio';
+

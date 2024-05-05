@@ -4,7 +4,13 @@ import {
     stream,
 } from 'kefir';
 
-export type Subject<T, S> = Stream<T, S> & { next: (value: T) => void };
+interface SubjectExtensions<T, S> {
+    next: (value: T) => void;
+    error: (value: S) => boolean;
+    complete: () => void;
+}
+
+export type Subject<T, S> = Stream<T, S> & SubjectExtensions<T, S>;
 
 export function subject<T = void, S = unknown>(): Subject<T, S> {
     let streamEmitter: Emitter<T, S>;
@@ -18,6 +24,8 @@ export function subject<T = void, S = unknown>(): Subject<T, S> {
     source$.offValue(callback);
 
     source$.next = value => streamEmitter.value(value);
+    source$.error = value => streamEmitter.error(value);
+    source$.complete = () => streamEmitter.end();
 
     return source$;
 }

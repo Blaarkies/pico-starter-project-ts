@@ -1,5 +1,5 @@
 /**
- * Linearly interpolate to find a value between `v0` and `v1` at the
+ * Linearly interpolate to find the value between `v0` and `v1` at the
  * position `t`
  * @param v0 number smaller than `v1`
  * @param v1 number larger than `v0`

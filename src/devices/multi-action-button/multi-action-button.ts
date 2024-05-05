@@ -1,5 +1,4 @@
-import { GPIO } from 'gpio';
-import { ButtonHoldLoopHandler } from '../../common/internal/button-hold-loop-handler';
+import { ButtonHoldLoopHandler } from './internal/button-hold-loop-handler';
 
 type DisposeFn = () => void;
 
@@ -61,48 +60,41 @@ export class MultiActionButton {
     private releaseFnSet = new Set<ButtonActionFn>();
     private changeFnSet = new Set<ButtonActionFn>();
 
-    private readonly pin: GPIO;
+    private watchId: number;
     private loopHandler: ButtonHoldLoopHandler;
-    private lastEventTimestamp: number;
 
-    constructor(pinIndex: number, debounceDurationMs = 30) {
-        this.lastEventTimestamp = millis() - debounceDurationMs;
+    constructor(private readonly pinIndex: number, debounceDurationMs = 30) {
+        let handleButtonFn = () => {
+            // pressing button grounds the circuit, reading 0
+            let isPress = !digitalRead(pinIndex);
 
-        this.pin = new GPIO(pinIndex, INPUT_PULLUP);
-
-        this.pin.irq((_, status) => {
-            let now = millis();
-
-            // Filter noisy events during the debounce period
-            let timeSinceLastEvent = now - this.lastEventTimestamp;
-            if (timeSinceLastEvent < debounceDurationMs) {
-                return;
-            }
-            this.lastEventTimestamp = now;
-
-            let isPress = status === FALLING;
-
-            // onChange() callbacks
             this.changeFnSet.forEach(fn => fn?.());
 
-            // onPress() callbacks
             if (isPress) {
                 this.pressFnSet.forEach(fn => fn?.());
             }
 
             // onLongPress() callback
             if (this.loopHandler) {
-                this.manageLongPressTransition(isPress, now);
+                this.manageLongPressTransition(isPress);
             } else if (!isPress) {
                 // Basic release functions only run when no onLongPress
                 // function was added, else this gets handled by
                 // manageLongPressTransition()
                 this.releaseFnSet.forEach(fn => fn?.());
             }
-        }, CHANGE);
+        };
+
+        pinMode(pinIndex, INPUT_PULLUP);
+        this.watchId = setWatch(
+            handleButtonFn,
+            pinIndex,
+            CHANGE,
+            debounceDurationMs);
     }
 
-    private manageLongPressTransition(isPress: boolean, now: number) {
+    private manageLongPressTransition(isPress: boolean) {
+        let now = millis();
         let lh = this.loopHandler;
 
         if (isPress) {
@@ -121,7 +113,10 @@ export class MultiActionButton {
     }
 
     dispose() {
-        this.pin.irq(undefined);
+        if (this.watchId !== undefined) {
+            clearWatch(this.watchId);
+            this.watchId = undefined;
+        }
     }
 
     onPress(callback: ButtonActionFn): DisposeFn {
@@ -142,7 +137,7 @@ export class MultiActionButton {
     onLongPress(config: ButtonLongPressConfig): DisposeFn {
         this.loopHandler?.dispose();
 
-        let getButtonState = this.pin.read.bind(this.pin);
+        let getButtonState = () => digitalRead(this.pinIndex);
 
         this.loopHandler = new ButtonHoldLoopHandler(
             getButtonState,
