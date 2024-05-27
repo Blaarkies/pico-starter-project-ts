@@ -26,3 +26,32 @@ export function toLog(value: number, skewFactor: number = 10): number {
 export function toExp(value: number, skewFactor: number = 10): number {
     return (Math.pow(skewFactor, value) - 1) / (skewFactor - 1);
 }
+
+
+/**
+ * Coerces `value` into the range limits of `min` and `max`.
+ * @param value
+ * @param min
+ * @param max
+ */
+export function coerce(value: number,
+                       min = Number.MIN_SAFE_INTEGER,
+                       max = Number.MAX_SAFE_INTEGER): number {
+    return value < min
+           ? min
+           : value > max
+             ? max
+             : value;
+}
+
+/**
+ * Normalizes `value` between `min` and `max` so that it fits in the range
+ * [0, 1]. Values beyond this range will be coerced into the range [0, 1].
+ * @param value
+ * @param min
+ * @param max
+ */
+export function normalize(value: number, min: number, max: number): number {
+    let normalized = (value - min) / (max - min);
+    return coerce(normalized, 0, 1);
+}
