@@ -10,6 +10,19 @@ import { adcToCelsius } from './common/unit-of-measure';
 import { Ws2812 } from './devices';
 
 
+// Blink internal
+const internalLed = new LED(board.LED);
+setInterval(() => {
+    internalLed.toggle();
+}, 500);
+
+// Blink internal with a special timing sequence
+// let wink$ = sequencedInterval([100, 800, 300, 400, 100]);
+// wink$.onValue(() => {
+//     internalLed.toggle();
+// });
+
+
 // Display results in debug console
 let output = {
     temperature: '-',
@@ -22,15 +35,6 @@ update$.throttle(500)
 Temperature:   ${output.temperature}
 Potentiometer: ${output.potentiometer}
 `));
-
-
-// Blink internal
-const internalLed = new LED(board.LED);
-let wink$ = sequencedInterval([100, 800, 300, 400, 100]);
-wink$.onValue(() => {
-    internalLed.toggle();
-});
-
 
 // Internal Temperature
 let tempAdc = board.adc(30);
@@ -55,7 +59,7 @@ board.button(buttonBPin)
     });
 
 
-// Potentiometer
+// Potentiometer - Simple dial
 let potPin = 28;
 let potAdc = board.adc(potPin);
 let previousPotValue: number;

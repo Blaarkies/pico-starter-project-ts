@@ -1,7 +1,7 @@
 {
   "name": "pico-ts-getting-started",
   "version": "0.0.1",
-  "description": "Starter project for programs running on the RP2040 chip",
+  "description": "Starter project for programs running on the Raspberry Pi Pico chip",
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
