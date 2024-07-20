@@ -65,7 +65,7 @@ export class Poller<T = number> {
             let reading = this.adc.read();
             let distance = Math.abs(reading - this.oldReading);
 
-            if (distance > this.config.minDistance) {
+            if (distance > this.config.minDistance || isNaN(this.oldReading)) {
                 this.oldReading = reading;
 
                 let transformedValue = this.config

@@ -1,6 +1,7 @@
 export interface DigitalIoMocks {
-    digitalRead: jest.Mocked<typeof digitalRead>;
-    pinMode: jest.Mocked<typeof pinMode>;
-    setWatch: jest.Mocked<typeof setWatch>;
-    clearWatch: jest.Mocked<typeof clearWatch>;
+    digitalRead: jest.MockedFn<typeof digitalRead>;
+    pinMode: jest.MockedFn<typeof pinMode>;
+    setWatch: jest.MockedFn<typeof setWatch>;
+    clearWatch: jest.MockedFn<typeof clearWatch>;
+    boardAdc: jest.MockedFn<typeof board.adc>;
 }

@@ -18,3 +18,25 @@ export function sum(list: number[]): number {
     }
     return sum;
 }
+
+export function average(list: number[]): number {
+    return sum(list) / list.length;
+}
+
+function getDifferences(list: number[]): number[] {
+    return list
+        .map((t, i, self) => self[i + 1] - t)
+        .slice(0, -1);
+}
+
+export function derivatives(list: number[], n: number = 1): number[] {
+    if (list.length <= n) {
+        throw new Error(`[list](length=${list.length}) is too short for `
+            + `calculations at derivative depth [${n}]`);
+    }
+    let resultList = list;
+    for (let i = 0; i < n; i++) {
+        resultList = getDifferences(resultList);
+    }
+    return resultList;
+}

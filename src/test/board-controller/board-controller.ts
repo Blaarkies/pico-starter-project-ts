@@ -5,6 +5,7 @@ import {
     IrqEvent,
     IrqStatusType,
 } from '../gpio/types';
+import { mockedBoard } from './index';
 import { DigitalIoMocks } from './types';
 
 export class BoardController {
@@ -16,6 +17,10 @@ export class BoardController {
     private pinStates: GpioState[] = [];
     private pinModes: GpioMode[] = [];
 
+    private setBoardMocks() {
+        mockedBoard.adc.mockRestore();
+    }
+
     restore() {
         this.irqEvent$.complete();
         this.irqEvent$ = subject<IrqEvent>();
@@ -24,6 +29,8 @@ export class BoardController {
         this.setWatchId = 0;
         this.pinStates = [];
         this.pinModes = [];
+
+        this.setBoardMocks();
     }
 
     triggerIrq(pin: number, status: IrqStatusType) {
@@ -79,6 +86,7 @@ export class BoardController {
             pinMode: jest.fn(),
             setWatch: jest.fn(),
             clearWatch: jest.fn(),
+            boardAdc: mockedBoard.adc,
         };
     }
 }
