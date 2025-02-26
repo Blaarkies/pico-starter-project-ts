@@ -137,3 +137,6 @@ declare module 'spi' {
     }
 
 }
+
+// declare module 'pico_cyw43' {  }
+// declare module 'wifi' {  }

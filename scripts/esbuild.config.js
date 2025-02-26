@@ -16,7 +16,15 @@ let config = {
     platform: 'node',
     target: 'node14',
     legalComments: 'none',
-    external: ['led', 'rp2', 'storage', 'gpio'],
+    external: [
+        'led',
+        'rp2',
+        'storage',
+        'gpio',
+        'wifi',
+        'http',
+        'pico_cyw43',
+    ],
     ...additionalArgs,
 };
 await build(config).catch(() => process.exit(1));
