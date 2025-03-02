@@ -7,7 +7,7 @@
   "scripts": {
     "build": "node scripts/esbuild.config.js",
     "build-minify": "npm run build -- --minify",
-    "flash": "npm run build && kaluma flash dist/main.js",
+    "flash": "kaluma erase && npm run build && kaluma flash dist/main.js",
     "debug": "npm run flash -- --shell",
     "test": "jest",
     "flash-prod": "npm run build-minify && kaluma flash dist/main.js"
