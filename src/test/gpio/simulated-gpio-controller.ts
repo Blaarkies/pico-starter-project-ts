@@ -1,26 +1,26 @@
-import { subject } from '../../common';
+import { Subject } from 'rxjs';
 import {
     AbstractSimulatedController,
     MockedUsages,
 } from '../abstract-simulated-controller';
+import { SimulatedGpio } from './simulated-gpio';
 import {
     GpioState,
     IrqEvent,
     IrqStatusType,
 } from './types';
-import { SimulatedGpio } from './simulated-gpio';
 
 export class SimulatedGpioController
     extends AbstractSimulatedController<SimulatedGpio> {
 
-    irqEvent$ = subject<IrqEvent>();
+    irqEvent$ = new Subject<IrqEvent>();
 
     private gpioStates: GpioState[] = [];
 
     override restore() {
         super.restore();
         this.gpioStates = [];
-        this.irqEvent$ = subject<IrqEvent>();
+        this.irqEvent$ = new Subject<IrqEvent>();
     }
 
     triggerIrq(pin: number, status: IrqStatusType, updateGpioState = true) {

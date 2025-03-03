@@ -1,4 +1,4 @@
-import { subject } from '../../common';
+import { Subject } from 'rxjs';
 import {
     GpioMode,
     GpioState,
@@ -10,7 +10,7 @@ import { DigitalIoMocks } from './types';
 
 export class BoardController {
 
-    irqEvent$ = subject<IrqEvent>();
+    irqEvent$ = new Subject<IrqEvent>();
     mocks = this.makeMocks();
     setWatchId = 0;
 
@@ -23,7 +23,7 @@ export class BoardController {
 
     restore() {
         this.irqEvent$.complete();
-        this.irqEvent$ = subject<IrqEvent>();
+        this.irqEvent$ = new Subject<IrqEvent>();
         this.mocks = this.makeMocks();
 
         this.setWatchId = 0;

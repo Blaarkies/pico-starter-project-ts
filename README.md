@@ -86,7 +86,7 @@ The `main.ts` file contains examples of interacting with hardware on a Pico:
     - Enhance simple hardware components: The Multi Action Button class turns any basic push button into a handler that
       can detect long-press presses, hold-to-repeat presses, etc.
     - Potentiometer dials can be read using the Poller class to reduce signal noise
-- Kefir, a reactive programming library helps to interact with time/event based asynchronous code
+- RxJS, a reactive programming library helps to interact with time/event based asynchronous code
 - Common functions to re-use
     - Color-space conversions, Binary bit masking
     - Interpolation, transforms between number distributions
