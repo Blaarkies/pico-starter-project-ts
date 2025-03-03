@@ -1,4 +1,5 @@
 import { GPIO } from 'gpio';
+import { filter } from 'rxjs/internal/operators/filter';
 import { gpioController } from './index';
 
 export class SimulatedGpio implements GPIO {
@@ -38,10 +39,8 @@ export class SimulatedGpio implements GPIO {
         gpioController.addMethodCall('irq', this.pin, ...args);
         gpioController
             .irqEvent$
-            .filter(({pin}) => pin === this.pin)
-            .onValue(({pin, status}) => {
-                args[0](pin, status);
-            });
+            .pipe(filter(({pin}) => pin === this.pin))
+            .subscribe(({pin, status}) => args[0](pin, status));
     }
 
 }

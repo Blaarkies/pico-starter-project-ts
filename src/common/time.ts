@@ -1,43 +1,31 @@
 import {
-    Subject,
-    subject,
-} from './stream';
-
-type Stoppable<T> = T & { stop: () => void, stopped: boolean };
-type SequenceIntervalSubject = Stoppable<Subject<number, unknown>>;
+    concat,
+    Observable,
+    timer,
+} from 'rxjs';
+import {
+    repeat,
+    scan,
+} from 'rxjs/operators';
 
 /**
  * Returns an observable that emits according to the time duration specified by
  * each element in `sequence`
- * Call the `stop()` method to complete
  * @param sequence List of interval durations in milliseconds
+ * @returns An observable that emits sequential numbers at the specified time intervals
  */
-export function sequencedInterval(sequence: number[]): SequenceIntervalSubject {
-    let source$ = subject<number>() as SequenceIntervalSubject;
-
-    let asyncSyntaxFn = async () => {
-        // Loop until `source$.stopped` is true. Keep the iteration index
-        let count = sequence.length;
-        for (let iteration = 0; true; iteration++) {
-            let index = iteration % count;
-            let durationMs = sequence[index];
-
-            await waitForDuration(durationMs);
-            if (source$.stopped) {
-                break;
-            }
-
-            source$.next(iteration);
-        }
-    };
-    asyncSyntaxFn();
-
-    source$.stop = () => source$.stopped = true;
-
-    return source$;
+export function sequencedInterval(sequence: number[]): Observable<number> {
+    return concat(...sequence.map(duration => timer(duration)))
+        .pipe(
+            repeat(),
+            scan(acc => acc + 1, -1),
+        );
 }
 
-export async function waitForDuration(durationMs: number) {
-    return new Promise<void>(resolve =>
-        setTimeout(() => resolve(), durationMs));
+/**
+ * Returns a promise that resolves after the specified duration
+ * @param durationMs Duration in milliseconds
+ */
+export function waitForDuration(durationMs: number): Promise<void> {
+    return new Promise<void>(resolve => setTimeout(resolve, durationMs));
 }

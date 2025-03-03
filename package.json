@@ -1,32 +1,32 @@
 {
-  "name": "pico-ts-getting-started",
-  "version": "0.0.1",
-  "description": "Starter project for programs running on the Raspberry Pi Pico chip",
-  "type": "module",
-  "main": "src/index.ts",
-  "scripts": {
-    "build": "node scripts/esbuild.config.js",
-    "build-minify": "npm run build -- --minify",
-    "flash": "kaluma erase && npm run build && kaluma flash dist/main.js",
-    "debug": "npm run flash -- --shell",
-    "test": "jest",
-    "flash-prod": "npm run build-minify && kaluma flash dist/main.js"
-  },
-  "keywords": [],
-  "author": "Blaarkies",
-  "license": "ISC",
-  "devDependencies": {
-    "@types/jest": "^29.5.12",
-    "@types/kaluma": "^1.1.0",
-    "@types/kefir": "^3.8.11",
-    "esbuild": "^0.20.0",
-    "jest": "^29.7.0",
-    "ts-jest": "^29.1.2",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.3.3"
-  },
-  "dependencies": {
-    "@kaluma/cli": "^1.4.0",
-    "kefir": "^3.8.8"
-  }
+    "name": "pico-ts-getting-started",
+    "version": "0.1.0",
+    "description": "Starter project for programs running on the Raspberry Pi Pico chip",
+    "type": "module",
+    "sideEffects": false,
+    "main": "src/index.ts",
+    "scripts": {
+        "build": "node scripts/esbuild.config.js",
+        "build-minify": "npm run build -- --minify",
+        "flash": "kaluma erase && npm run build && kaluma flash dist/main.js",
+        "debug": "npm run flash -- --shell",
+        "test": "jest",
+        "flash-prod": "npm run build-minify && kaluma flash dist/main.js"
+    },
+    "keywords": [],
+    "author": "Blaarkies",
+    "license": "ISC",
+    "devDependencies": {
+        "@kaluma/cli": "^1.4.0",
+        "@types/jest": "^29.5.12",
+        "@types/kaluma": "^1.1.0",
+        "esbuild": "^0.20.0",
+        "jest": "^29.7.0",
+        "ts-jest": "^29.1.2",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.3.3"
+    },
+    "dependencies": {
+        "rxjs": "^7.8.2"
+    }
 }

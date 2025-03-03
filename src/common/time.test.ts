@@ -1,11 +1,11 @@
-import { Stream } from 'kefir';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import {
     sequencedInterval,
     waitForDuration,
 } from './time';
 
 describe('sequencedInterval()', () => {
-
     beforeAll(() => {
         jest.useFakeTimers();
     });
@@ -15,82 +15,82 @@ describe('sequencedInterval()', () => {
         jest.clearAllTimers();
     });
 
-    test('returns a new stream', () => {
-        let sequence$ = sequencedInterval([100, 200]);
+    test('returns an observable', () => {
+        const sequence$ = sequencedInterval([100, 200]);
 
-        expect(sequence$).toBeInstanceOf(Stream);
+        expect(typeof sequence$.subscribe).toBe('function');
     });
 
     test('emits the iteration number', async () => {
-        let sequence$ = sequencedInterval([100]);
+        const sequence$ = sequencedInterval([100]);
+        const values: number[] = [];
 
-        let spyCallback = jest.fn();
-        sequence$.onValue(spyCallback);
+        const subscription = sequence$.subscribe(val => values.push(val));
 
         await jest.advanceTimersByTimeAsync(100);
+        expect(values).toEqual([0]);
 
-        expect(spyCallback).toHaveBeenCalledWith(0);
+        subscription.unsubscribe();
     });
 
     test('emits only at specified intervals', async () => {
-        let sequence$ = sequencedInterval([100, 500]);
+        const sequence$ = sequencedInterval([100, 500]);
+        const values: number[] = [];
 
-        let spyCallback = jest.fn();
-        sequence$.onValue(spyCallback);
+        const subscription = sequence$.subscribe(val => values.push(val));
 
-        // 99 ms
         await jest.advanceTimersByTimeAsync(99);
-        expect(spyCallback).not.toHaveBeenCalled();
+        expect(values).toEqual([]);
 
-        // 100 ms
         await jest.advanceTimersByTimeAsync(1);
-        expect(spyCallback).toHaveBeenCalledTimes(1);
+        expect(values).toEqual([0]);
 
-        // 599 ms
         await jest.advanceTimersByTimeAsync(499);
-        expect(spyCallback).toHaveBeenCalledTimes(1);
+        expect(values).toEqual([0]);
 
-        // 600 ms
         await jest.advanceTimersByTimeAsync(1);
-        expect(spyCallback).toHaveBeenCalledTimes(2);
+        expect(values).toEqual([0, 1]);
+
+        subscription.unsubscribe();
     });
 
-    test('calling stop() prevents more emits', async () => {
-        let sequence$ = sequencedInterval([100]);
+    test('can be stopped with takeUntil', async () => {
+        const stop$ = new Subject<void>();
+        const sequence$ = sequencedInterval([100]).pipe(
+            takeUntil(stop$),
+        );
 
-        let spyCallback = jest.fn();
-        sequence$.onValue(spyCallback);
+        const values: number[] = [];
+        const subscription = sequence$.subscribe(val => values.push(val));
 
-        sequence$.stop();
+        stop$.next(); // Stop immediately
 
         await jest.advanceTimersByTimeAsync(100);
+        expect(values).toEqual([]);
 
-        expect(spyCallback).not.toHaveBeenCalled();
+        subscription.unsubscribe();
     });
 
     test('sequence repeats', async () => {
-        let sequence$ = sequencedInterval([100, 500]);
+        const sequence$ = sequencedInterval([100, 500]);
+        const values: number[] = [];
 
-        let spyCallback = jest.fn();
-        sequence$.onValue(spyCallback);
+        const subscription = sequence$.subscribe(val => values.push(val));
 
-        // 100 ms
         await jest.advanceTimersByTimeAsync(100);
-        expect(spyCallback).toHaveBeenCalledTimes(1);
+        expect(values).toEqual([0]);
 
-        // 600 ms
         await jest.advanceTimersByTimeAsync(500);
-        expect(spyCallback).toHaveBeenCalledTimes(2);
+        expect(values).toEqual([0, 1]);
 
-        // 700 ms
         await jest.advanceTimersByTimeAsync(100);
-        expect(spyCallback).toHaveBeenCalledTimes(3);
+        expect(values).toEqual([0, 1, 2]);
 
-        // 1200 ms
         await jest.advanceTimersByTimeAsync(500);
-        expect(spyCallback).toHaveBeenCalledTimes(4);
+        expect(values).toEqual([0, 1, 2, 3]);
+
+        subscription.unsubscribe();
     });
-
 });
 
 describe('waitForDuration()', () => {
