@@ -119,3 +119,24 @@ export function getHslAtKelvin(
 ): ColorHsl {
     return colorTemperatureToHsl[kelvin] as ColorHsl;
 }
+
+export function colorTemperatureToHSL(colorTemp: number) {
+    const t = colorTemp / 100;
+
+    let hue = t <= 66
+              ? (0.3908 * t) - 25.962
+              : (0.0082 * t) + 226.752;
+    hue = Math.round(hue);
+
+    let saturation = t <= 66
+                     ? (1.047 * t) - 9.797
+                     : (0.0013 * t) + 91.924;
+    saturation = Math.min(100, Math.round(saturation));
+
+    let lightness = t <= 66
+                    ? (-0.3243 * t) + 50.813
+                    : (-0.0062 * t) + 103.156;
+    lightness = Math.min(100, Math.round(lightness));
+
+    return [hue, saturation, lightness];
+}
