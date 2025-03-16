@@ -14,11 +14,12 @@ let config = {
     bundle: true,
     outdir: 'dist',
     platform: 'node',
-    target: 'es2018',
+    target: 'node14',
     legalComments: 'none',
     external: [
         'led',
         'rp2',
+        'spi',
         'storage',
         'gpio',
         'wifi',
@@ -26,8 +27,10 @@ let config = {
         'pico_cyw43',
     ],
     minify: additionalArgs.minify,
+    drop: additionalArgs.minify ? ['console'] : [],
+    ignoreAnnotations: true,
     treeShaking: true,
-    define: { 'process.env.NODE_ENV': '"production"' },
+    // define: { 'process.env.NODE_ENV': '"production"' },
     sourcemap: false,
     logLevel: 'info',
 };
@@ -59,35 +62,41 @@ let outputFileName = config.entryPoints[0]
     .replace('ts', 'js');
 let filePath = `${config.outdir}/${outputFileName}`;
 
-let fileContents;
+let fileContents = readFileSync(filePath, {encoding: 'utf8'});
+let limit = 390;
+if (fileContents.length > limit*1e3) {
+    let size = fileContents.length / 1e3;
+    console.error('Build artifact may be too large for a Pico device: '
+    + `${size.toFixed(1)}kb (Pico1 limit ${limit}kb)`);
+}
 
 /** Perform additional minification (remove console logs) */
-if (additionalArgs.minify) {
-    fileContents ??= readFileSync(filePath, {encoding: 'utf8'});
-
-    let regexConsoleX = /console\.(log|warn|error|info)\(([^)]*)\);?/g;
-    let regexStringMessages = /(["'`])(?:(?=(\\?))\2.)*?\1/g;
-
-    function inBytes(text) {
-        let rounding = 1e1;
-        let size = Math.round(rounding * text.length / 1024);
-        return `${(size / rounding).toFixed(1)}KB`;
-    }
-
-    let oldSize = inBytes(fileContents);
-
-    fileContents = fileContents
-        .replace('\n', '')
-        .replace(regexConsoleX, 'void 0')
-        .replace(regexStringMessages,
-            s => (s.includes(' ') && s.split(' ').length > 2) ? '""' : s);
-    let newSize = inBytes(fileContents);
-
-    console.log(
-        `▶Super minified build from ${oldSize} to ${newSize}, `
-        + `saving ${oldSize - newSize} bytes.
-        `);
-}
+// if (additionalArgs.minify) {
+//     fileContents ??= readFileSync(filePath, {encoding: 'utf8'});
+//
+//     let regexConsoleX = /console\.(log|warn|error|info)\(([^)]*)\);?/g;
+//     let regexStringMessages = /(["'`])(?:(?=(\\?))\2.)*?\1/g;
+//
+//     function inBytes(text) {
+//         let rounding = 1e1;
+//         let size = Math.round(rounding * text.length / 1024);
+//         return Number((size / rounding).toFixed(1));
+//     }
+//
+//     let oldSize = inBytes(fileContents);
+//
+//     fileContents = fileContents
+//         .replace('\n', '')
+//         .replace(regexConsoleX, 'void 0')
+//         .replace(regexStringMessages,
+//             s => (s.includes(' ') && s.split(' ').length > 2) ? '""' : s);
+//     let newSize = inBytes(fileContents);
+//
+//     console.log(
+//         `▶Super minified build from ${oldSize}KB to ${newSize}KB, `
+//         + `saving ${(oldSize - newSize).toFixed(1)}KB.
+//         `);
+// }
 
 /** Replace secrets tags with those found in the secrets file */
 if (additionalArgs.addSecrets) {

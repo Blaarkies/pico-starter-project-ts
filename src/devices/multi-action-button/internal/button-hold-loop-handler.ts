@@ -1,4 +1,5 @@
-import { waitForDuration } from '../../../common';
+
+import { waitForDuration } from '../../../common/time';
 import { ButtonLongPressConfig } from '../multi-action-button';
 
 export class ButtonHoldLoopHandler {

@@ -1,11 +1,9 @@
-import {
-    ColorRgb,
-    lerp,
-    pickRandomElement,
-    waitForDuration,
-} from '../common';
-import { toLog } from '../common/transform';
-import { Ws2812 } from '../devices/ws2812/ws2812';
+import { ColorRgb } from 'common/color-space';
+import { pickRandomElement } from 'common/enumerate';
+import { lerp } from 'common/interpolate';
+import { waitForDuration } from 'common/time';
+import { toLog } from 'common/transform';
+import { Ws2812 } from 'devices/ws2812/ws2812';
 
 type AnimationType =
     | 'fade'
@@ -36,7 +34,7 @@ export class PixelsAnimator {
         .map(([_, v]) => v);
 
     constructor(
-        private readonly pixels: Ws2812,
+        private pixels: Ws2812,
         private intervalMs = 17,
     ) {
     }
@@ -51,7 +49,6 @@ export class PixelsAnimator {
         let animationJob = config.animationType
                            ? this.animationMap.get(config.animationType)
                            : pickRandomElement(this.animationsList);
-
         await animationJob(rgb, config);
 
         this.isBusy = false;
@@ -65,7 +62,7 @@ export class PixelsAnimator {
     }
 
     private async animateFade(rgb: ColorRgb, config: AnimationConfig = {}) {
-        let rgbLerpFn = config.rgbLerpFn 
+        let rgbLerpFn = config.rgbLerpFn
             ?? ((rgb1, rgb2, t) => [
             this.lerpRgbChannel(0, rgb1, rgb2, t),
             this.lerpRgbChannel(1, rgb1, rgb2, t),
@@ -125,4 +122,5 @@ export class PixelsAnimator {
             await waitForDuration(this.intervalMs);
         }
     }
+
 }

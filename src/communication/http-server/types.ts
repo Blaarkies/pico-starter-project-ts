@@ -6,15 +6,15 @@ export let contentTypes = {
   json: 'text/json; charset=utf-8',
 };
 
-type ContentType = keyof typeof contentTypes;
+type ContentType = typeof contentTypes[keyof typeof contentTypes];
 
-interface RouteResult {
+export interface RouteResult {
   status?: number;
   message?: string;
   contentType?: ContentType;
 }
 
-type AsyncCallbackWithRequest<T> =
+export type AsyncCallbackWithRequest<T> =
   (request: InstanceType<typeof IncomingMessage>) => Promise<T>;
 
 export interface HttpServerConfig {

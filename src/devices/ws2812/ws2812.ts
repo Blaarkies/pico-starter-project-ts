@@ -3,10 +3,8 @@ import {
     PIO,
     StateMachine,
 } from 'rp2';
-import {
-    ColorRgb,
-    reverseBits,
-} from '../../common';
+import { reverseBits } from 'common/binary';
+import { ColorRgb } from 'common/color-space';
 
 /**
  * Controller for
@@ -73,14 +71,6 @@ export class Ws2812 {
 
     /** Updates the LED device with new data */
     write() {
-        let rxfifo = this.stateMachine.rxfifo();
-        let txfifo = this.stateMachine.txfifo();
-        if (rxfifo || txfifo) {
-console.log(`---
-rxfifo[${rxfifo}] txfifo[${txfifo}] 
-`.trim());
-        }
-
         this.stateMachine.put(this.buffer);
     }
 
