@@ -1,4 +1,6 @@
-﻿.idea/
+﻿local-secret.json
+
+.idea/
 node_modules/
 dist/
 package-lock.json

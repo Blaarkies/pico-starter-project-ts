@@ -60,9 +60,6 @@ function endResponse(
     contentType?: string,
     message?: string,
 ) {
-    // console.log('endResponse with',JSON.stringify(
-    //     {status, message, contentType,}, null, 2));
-
     res.writeHead(status, {
         'Content-Type': contentType,
         'Content-Length': message.length,

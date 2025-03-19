@@ -11,7 +11,8 @@
         "flash": "kaluma erase && npm run build && kaluma flash dist/main.js",
         "debug": "npm run flash -- --shell",
         "test": "jest",
-        "flash-prod": "npm run build-minify && kaluma flash dist/main.js"
+        "flash-prod": "npm run build-minify && kaluma flash dist/main.js",
+        "analyze": "node scripts/esbuild.config.js --analyze"
     },
     "keywords": [],
     "author": "Blaarkies",

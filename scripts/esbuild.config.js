@@ -1,5 +1,6 @@
-import { build } from 'esbuild';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { analyzeMetafile, build } from 'esbuild';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { basename, join } from 'node:path';
 
 let additionalArgs = process.argv
     .filter(arg => arg.startsWith('--'))
@@ -7,7 +8,7 @@ let additionalArgs = process.argv
         let arg = c.split('--')[1];
         sum[arg] = true;
         return sum;
-    }, {addSecrets: true});
+    }, {addSecrets: true, analyze: false});
 
 let config = {
     entryPoints: ['src/main.ts'],
@@ -35,20 +36,22 @@ let config = {
     logLevel: 'info',
 };
 
+/** Analyze mode to compare sizes of imports */
+if (additionalArgs.analyze) {
+    let result = await build({
+        ...config,
+        metafile: true,
+    });
+    let analysis = await analyzeMetafile(result.metafile);
+    console.log('Build analyzed\n', analysis);
+    process.exit(0);
+}
+
 await build(config).catch(e => {
     console.error(e);
     process.exit(1);
 });
 
-/*
-// Analyze build imports
-import {analyzeMetafile} from 'esbuild';
-let result = await build({
-    ...config,
-    metafile: true,
-});
-console.log(await analyzeMetafile(result.metafile));
-*/
 
 /**
  * Post build steps
@@ -64,10 +67,10 @@ let filePath = `${config.outdir}/${outputFileName}`;
 
 let fileContents = readFileSync(filePath, {encoding: 'utf8'});
 let limit = 390;
-if (fileContents.length > limit*1e3) {
+if (fileContents.length > limit * 1e3) {
     let size = fileContents.length / 1e3;
     console.error('Build artifact may be too large for a Pico device: '
-    + `${size.toFixed(1)}kb (Pico1 limit ${limit}kb)`);
+        + `${size.toFixed(1)}kb (Pico1 limit ${limit}kb)`);
 }
 
 /** Perform additional minification (remove console logs) */
@@ -100,7 +103,27 @@ if (fileContents.length > limit*1e3) {
 
 /** Replace secrets tags with those found in the secrets file */
 if (additionalArgs.addSecrets) {
-    let secretsContent = readFileSync('local-secret.json',
+    let secretsFileName = 'local-secret.json';
+
+    if (!existsSync(secretsFileName)) {
+        writeFileSync(secretsFileName, JSON.stringify({
+            [`// These keys will be replaced by their value,    `]: '',
+            [`// when the keys are found in the final artifact. `]: '',
+            [`// Use it to separate sensitive passwords or      `]: '',
+            [`// API keys during development.                   `]: '',
+            '<<SECRET_WIFI_SSID>>': 'my wifi name',
+            '<<SECRET_WIFI_PASSWORD>>': 'secret password to my wifi',
+            '<<SECRET_WIFI_SECURITY>>': 'WPA2-Personal',
+        }, null, 2));
+        let parentDirectory = basename(process.cwd());
+        let finalFilePath = join(' .', parentDirectory, secretsFileName)
+            .slice(1);
+        console.log('No secrets file found. '
+            + 'A blank example template has been created '
+            + `[${finalFilePath}]`);
+    }
+
+    let secretsContent = readFileSync(secretsFileName,
         {encoding: 'utf8'});
     let secrets = JSON.parse(secretsContent);
 
