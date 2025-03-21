@@ -3,13 +3,13 @@ import { readRequestBody } from 'communication/http-server/process';
 import { makeHttpServer } from 'communication/http-server/server';
 import { contentTypes } from 'communication/http-server/types';
 import { connectToWifiNetwork } from 'communication/wifi';
+import { PixelAnimator } from 'devices/ws2812/animator/pixel-animator';
 import { IPWM } from 'pwm';
-import { ColorCycler } from 'state/color-selection';
-import { PixelsAnimator } from 'state/pixels-animator';
+import { ColorSelection } from 'state/color-selection';
 
 export async function setupServer(controls: {
-    colorCycler: ColorCycler;
-    pixelsAnimator: PixelsAnimator;
+    colorCycler: ColorSelection;
+    pixelAnimator: PixelAnimator;
     brightLedPwm: IPWM;
 }) {
     console.log('Starting server setup...');
@@ -146,7 +146,7 @@ function updateState() {
                 let cycler = controls.colorCycler;
                 cycler.cyclePower();
                 let newColor = cycler.selectedRgb;
-                controls.pixelsAnimator.setColor(newColor);
+                controls.pixelAnimator.setToColor(newColor);
 
                 return {
                     message: JSON.stringify(newColor),
@@ -158,10 +158,9 @@ function updateState() {
                 let cycler = controls.colorCycler;
                 let oldColor = cycler.selectedRgb;
                 cycler.toggle();
-                controls.pixelsAnimator.setColor(
+                controls.pixelAnimator.setToColor(
                     cycler.selectedRgb,
                     {
-                        animationType: 'fade',
                         fromRgb: oldColor,
                     },
                 );
