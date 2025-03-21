@@ -31,8 +31,8 @@ export class Ws2812 {
     private stateMachine: StateMachine;
     private buffer: Uint32Array;
 
-    constructor(pin: number, readonly ledAmount: number) {
-        if (!(ledAmount > 0)) {
+    constructor(pin: number, readonly ledCount: number) {
+        if (!(ledCount > 0)) {
             throw Error(`Cannot create WS2812 instance with no LEDs`);
         }
 
@@ -59,7 +59,7 @@ export class Ws2812 {
 
         this.stateMachine.active(true);
 
-        this.buffer = new Uint32Array(ledAmount);
+        this.buffer = new Uint32Array(ledCount);
     }
 
     static valueFromColor(rgb: ColorRgb): number {

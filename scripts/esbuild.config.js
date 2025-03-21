@@ -8,7 +8,7 @@ let additionalArgs = process.argv
         let arg = c.split('--')[1];
         sum[arg] = true;
         return sum;
-    }, {addSecrets: true, analyze: false});
+    }, {addSecrets: true, analyze: false, superMinify: false});
 
 let config = {
     entryPoints: ['src/main.ts'],
@@ -28,7 +28,7 @@ let config = {
         'pico_cyw43',
     ],
     minify: additionalArgs.minify,
-    drop: additionalArgs.minify ? ['console'] : [],
+    drop: additionalArgs.superMinify ? ['console'] : [],
     ignoreAnnotations: true,
     treeShaking: true,
     // define: { 'process.env.NODE_ENV': '"production"' },

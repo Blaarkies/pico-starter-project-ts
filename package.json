@@ -9,9 +9,9 @@
         "build": "node scripts/esbuild.config.js",
         "build-minify": "npm run build -- --minify",
         "flash": "kaluma erase && npm run build && kaluma flash dist/main.js",
-        "debug": "npm run flash -- --shell",
+        "flash-prod": "kaluma erase && npm run build-minify && kaluma flash dist/main.js",
+        "debug": "npm run flash-prod -- --shell",
         "test": "jest",
-        "flash-prod": "npm run build-minify && kaluma flash dist/main.js",
         "analyze": "node scripts/esbuild.config.js --analyze"
     },
     "keywords": [],

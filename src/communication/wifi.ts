@@ -20,7 +20,7 @@ export async function connectToWifiNetwork(
     let retryLimit = 5;
     for (let i = 0; i < retryLimit; i++) {
         let wiFi = new WiFi();
-        let result = await connect(wiFi)
+        let isConnected = await connect(wiFi)
             .then(wifiInfo => {
                 wifiInfo.password = '███████████████';
                 let wifiInfoText = Object.entries(wifiInfo)
@@ -31,16 +31,17 @@ export async function connectToWifiNetwork(
             })
             .catch(async (err) => {
                 console.error(`>> Failed to connect. Retrying...\n`
-                    + `\tAttempt #[${i + 1}] of ${retryLimit}`);
+                    + `\tAttempt #[${i + 1}] of ${retryLimit}`, err);
                 await waitForDuration(2e3);
                 return false;
             });
 
-        if (result) {
+        if (isConnected) {
+            // Attempt at finding:  Uncaught (in promise) Error: WiFi is not connected.
+            await waitForDuration(1e3);
             return wiFi;
         }
     }
-
 }
 
 async function connect(wifi): Promise<WiFiDetails> {

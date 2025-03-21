@@ -16,11 +16,12 @@
                 "./src/communication/*"
             ],
             "devices/*": [
-                "./src/devices/*",
+                "./src/devices/*"
             ],
             "state/*": [
                 "./src/state/*"
             ]
-        }
+        },
+        "resolveJsonModule": true
     }
 }
