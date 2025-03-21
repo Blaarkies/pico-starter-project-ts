@@ -22,7 +22,7 @@ interface HslPreset {
     [key: string]: ColorHsl;
 }
 
-export class ColorCycler {
+export class ColorSelection {
 
     selected?: CurrentSelection;
 

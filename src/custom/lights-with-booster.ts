@@ -3,16 +3,15 @@ import {
     sequencedInterval,
     waitForDuration,
 } from 'common/time';
-import { makeHttpServer } from 'communication/http-server/server';
-import { connectToWifiNetwork } from 'communication/wifi';
 import { MultiActionButton } from 'devices/multi-action-button/multi-action-button';
+import { animateCenterFloodOut } from 'devices/ws2812/animator/animations/center-flood';
+import { PixelAnimator } from 'devices/ws2812/animator/pixel-animator';
 import { Ws2812 } from 'devices/ws2812/ws2812';
 import { PicoCYW43 } from 'pico_cyw43';
 import { IPWM } from 'pwm';
 import { takeUntil } from 'rxjs/internal/operators/takeUntil';
 import { Subject } from 'rxjs/internal/Subject';
-import { ColorCycler } from 'state/color-selection';
-import { PixelsAnimator } from 'state/pixels-animator';
+import { ColorSelection } from 'state/color-selection';
 import { setupServer } from './server';
 
 let picoCyw43 = new PicoCYW43();
@@ -27,7 +26,7 @@ let toggleBoardLed = () => {
 export async function setupLightsWithBooster() {
     toggleBoardLed();
 
-    let colorCycler = new ColorCycler(
+    let colorCycler = new ColorSelection(
         {
             warm: getHslAtKelvin(2000),
             cold: getHslAtKelvin(4000),
@@ -45,9 +44,9 @@ export async function setupLightsWithBooster() {
     let pixels = new Ws2812(pinPixels, 74);
     pixels.fillAllColor([0, 0, 0]);
 
-    let pixelsAnimator = new PixelsAnimator(pixels);
-    pixelsAnimator.setColor(colorCycler.selectedRgb, {
-        animationType: 'sweep-center-out',
+    let pixelAnimator = new PixelAnimator(pixels);
+    pixelAnimator.setToColor(colorCycler.selectedRgb, {
+        animationFn: animateCenterFloodOut,
     });
 
 // Buttons
@@ -79,8 +78,7 @@ export async function setupLightsWithBooster() {
         colorCycler.toggle();
         let selectedColor = colorCycler.selectedRgb;
 
-        pixelsAnimator.setColor(selectedColor, {
-            animationType: 'fade',
+        pixelAnimator.setToColor(selectedColor, {
             duration: 8e3,
             fromRgb: oldColor,
         });
@@ -89,7 +87,7 @@ export async function setupLightsWithBooster() {
     buttonC.onRelease(async () => {
         if (longPress.b) {
             colorCycler.cycleColor();
-            pixelsAnimator.setColor(colorCycler.selectedRgb);
+            pixelAnimator.setToColor(colorCycler.selectedRgb);
 
             (colorCycler.selected.colorIndex === 1)
             ? brightLedPwm.start()
@@ -121,13 +119,13 @@ export async function setupLightsWithBooster() {
 
     buttonB.onRelease(() => {
         colorCycler.cyclePower(longPress.c ? -1 : 1);
-        pixelsAnimator.setColor(colorCycler.selectedRgb);
+        pixelAnimator.setToColor(colorCycler.selectedRgb);
     });
 
     try {
         await setupServer({
             colorCycler,
-            pixelsAnimator,
+            pixelAnimator,
             brightLedPwm,
         });
     } catch (e) {

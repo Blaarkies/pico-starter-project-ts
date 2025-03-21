@@ -1,11 +1,11 @@
 import { ColorRgb } from 'common/color-space';
 import { lerp } from 'common/interpolate';
-import { toExp } from 'common/transform';
+import { toLog } from 'common/transform';
 
 /** Interpolates channel `i` from `rgb1` to `rgb2` at ratio `t` with a log(10) transformation */
 function lerpRgbChannel(i: number, rgb1: ColorRgb, rgb2: ColorRgb, t: number)
     : number {
-    return lerp(rgb1[i], rgb2[i], toExp(t, 10));
+    return lerp(rgb1[i], rgb2[i], toLog(t, 10));
 }
 
 /**

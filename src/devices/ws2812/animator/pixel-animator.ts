@@ -5,6 +5,7 @@ import { lerpRgbPixelLinear } from 'devices/ws2812/animator/lerp-color-channels'
 import { AnimationFn } from 'devices/ws2812/animator/types';
 import { Ws2812 } from 'devices/ws2812/ws2812';
 import { firstValueFrom } from 'rxjs/internal/firstValueFrom';
+import { lastValueFrom } from 'rxjs/internal/lastValueFrom';
 import { timer } from 'rxjs/internal/observable/timer';
 import { Subject } from 'rxjs/internal/Subject';
 
@@ -74,9 +75,7 @@ export class PixelAnimator {
         config.stepCount = Math.floor(config.duration / config.intervalMs);
 
         let job$ = config.animationFn(config);
-        job$.subscribe(c => this.latestColor = c);
-
-        // return firstValueFrom(this.stop$);
+        this.latestColor = await lastValueFrom(job$);
     }
 
 }
