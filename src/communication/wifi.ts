@@ -37,7 +37,8 @@ export async function connectToWifiNetwork(
             });
 
         if (isConnected) {
-            // Attempt at finding:  Uncaught (in promise) Error: WiFi is not connected.
+            // Attempt at finding:
+            // Uncaught (in promise) Error: WiFi is not connected.
             await waitForDuration(1e3);
             return wiFi;
         }

@@ -3,8 +3,8 @@ import {
     ColorHsl,
     ColorRgb,
     hslToRgb,
-} from '../common/color-space';
-import { toExp } from '../common/transform';
+} from 'common/color-space';
+import { toExp } from 'common/transform';
 
 interface CurrentSelection {
     colorIndex: number;

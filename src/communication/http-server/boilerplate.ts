@@ -1,21 +1,22 @@
-import { overrideDefaults } from '../../common/function';
+import { overrideDefaults } from 'common/function';
 
 export interface HtmlDocumentConfig {
-  title: string;
-  body: string;
-  style: string;
-  script: string;
+    title: string;
+    body: string;
+    style: string;
+    script: string;
 }
 
 export function makeHtmlDocument(argsConfig?: Partial<HtmlDocumentConfig>) {
-  let {title, body, script, style} = overrideDefaults<HtmlDocumentConfig>({
-    title: '',
-    body: '',
-    style: '',
-    script: '',
-  }, argsConfig);
+    console.log('starting makeHtmlDocument');
+    let {title, body, script, style} = overrideDefaults<HtmlDocumentConfig>({
+        title: '',
+        body: '',
+        style: '',
+        script: '',
+    }, argsConfig);
 
-  let htmlDocument = `
+    let htmlDocument = `
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -24,18 +25,20 @@ export function makeHtmlDocument(argsConfig?: Partial<HtmlDocumentConfig>) {
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta name="description" content="" />
     <link rel="icon" href="favicon.ico">
-    <style>${style}</style>
+    <link rel="stylesheet" href="style.css">
+    <script defer src="script.js"></script>${style
+    && `<style>
+        ${style}
+      </style>`}
   </head>
   
   <body>
     ${body}
-  </body>
-  
-  <script>
-    ${script}
-  </script>
-</html>
-`;
+  </body>${script
+    && `<script>
+        ${script}
+      </script>`}
+</html>`;
 
-  return htmlDocument;
+    return htmlDocument;
 }
