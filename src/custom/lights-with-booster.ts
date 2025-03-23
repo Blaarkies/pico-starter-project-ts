@@ -11,17 +11,15 @@ import { PicoCYW43 } from 'pico_cyw43';
 import { IPWM } from 'pwm';
 import { takeUntil } from 'rxjs/internal/operators/takeUntil';
 import { Subject } from 'rxjs/internal/Subject';
-import { ColorSelection } from 'state/color-selection';
+import { ColorSelection } from './color-selection';
 import { setupServer } from './server';
 
 let picoCyw43 = new PicoCYW43();
 let stateLed = false;
-let setBoardLed = (isOn: boolean) => {
-    return picoCyw43.putGpio(0, stateLed = isOn);
-};
-let toggleBoardLed = () => {
-    return picoCyw43.putGpio(0, stateLed = !stateLed);
-};
+let setBoardLed = (isOn: boolean) =>
+    picoCyw43.putGpio(0, stateLed = isOn);
+let toggleBoardLed = () =>
+    picoCyw43.putGpio(0, stateLed = !stateLed);
 
 export async function setupLightsWithBooster() {
     toggleBoardLed();
@@ -129,6 +127,11 @@ export async function setupLightsWithBooster() {
             brightLedPwm,
         });
     } catch (e) {
-        console.log('\n---------\nFatal Error: \n', e);
+        console.log('\n--------------\nFatal Error: \n',
+            e,
+            e.message,
+            e.stack,
+            );
+        // setupLightsWithBooster();
     }
 }

@@ -1,4 +1,4 @@
-import { ColorHsl } from '../color-space';
+import { getHslAtKelvin } from 'common/internal/kelvin-temperature-table';
 
 let colorTemperatureToHsl = {
     1000: [.04, 1, .50],
@@ -114,29 +114,13 @@ let colorTemperatureToHsl = {
     12000: [.63, 1, .88],
 };
 
-export function getHslAtKelvin(kelvin: number): ColorHsl {
-    return colorTemperatureToHsl[kelvin] as ColorHsl;
+describe('getHslAtKelvin()', () => {
 
-    // return colorTemperatureToHSL(kelvin);
-}
+    test.each(Object.entries(colorTemperatureToHsl))
+    ('%dK should return HSL %s', (temperature, hsl) => {
 
-export function colorTemperatureToHSL(colorTemp: number): ColorHsl {
-    const t = colorTemp / 100;
+        let calculatedHsl = getHslAtKelvin(Number(temperature));
+        expect(calculatedHsl).toEqual(hsl);
+    });
 
-    let hue = t <= 66
-              ? (0.3908 * t) - 25.962
-              : (0.0082 * t) + 226.752;
-    hue = Math.round(hue);
-
-    let saturation = t <= 66
-                     ? (1.047 * t) - 9.797
-                     : (0.0013 * t) + 91.924;
-    saturation = Math.min(100, Math.round(saturation));
-
-    let lightness = t <= 66
-                    ? (-0.3243 * t) + 50.813
-                    : (-0.0062 * t) + 103.156;
-    lightness = Math.min(100, Math.round(lightness));
-
-    return [hue/255, saturation/255, lightness/255];
-}
+});
