@@ -39,6 +39,7 @@ export async function setupLightsWithBooster() {
 
     let brightLedPwm = board.pwm(pinBrightLed, 1500, .3) as IPWM;
 
+    // let pixels = new Ws2812(pinPixels, 12);
     let pixels = new Ws2812(pinPixels, 74);
     pixels.fillAllColor([0, 0, 0]);
 
@@ -80,6 +81,7 @@ export async function setupLightsWithBooster() {
             duration: 8e3,
             fromRgb: oldColor,
         });
+        setBoardLed(false);
     }
 
     buttonC.onRelease(async () => {
@@ -125,13 +127,10 @@ export async function setupLightsWithBooster() {
             colorCycler,
             pixelAnimator,
             brightLedPwm,
+            toggleBoardLed,
+            setBoardLed,
         });
     } catch (e) {
-        console.log('\n--------------\nFatal Error: \n',
-            e,
-            e.message,
-            e.stack,
-            );
-        // setupLightsWithBooster();
+        console.error('\n--------------\nFatal Error: \n', e);
     }
 }
