@@ -4,16 +4,20 @@ export interface HtmlDocumentConfig {
     title: string;
     body: string;
     style: string;
+    styleSrc: string;
     script: string;
+    scriptSrc: string;
 }
 
 export function makeHtmlDocument(argsConfig?: Partial<HtmlDocumentConfig>) {
-    console.log('starting makeHtmlDocument');
-    let {title, body, script, style} = overrideDefaults<HtmlDocumentConfig>({
+    let {title, body, style, styleSrc, script, scriptSrc} =
+        overrideDefaults<HtmlDocumentConfig>({
         title: '',
         body: '',
         style: '',
+        styleSrc: '',
         script: '',
+        scriptSrc: '',
     }, argsConfig);
 
     let htmlDocument = `
@@ -25,9 +29,9 @@ export function makeHtmlDocument(argsConfig?: Partial<HtmlDocumentConfig>) {
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta name="description" content="" />
     <link rel="icon" href="favicon.ico">
-    <link rel="stylesheet" href="style.css">
-    <script defer src="script.js"></script>${style
-    && `<style>
+    ${styleSrc && `<link rel="stylesheet" href="${styleSrc}">`}
+    ${scriptSrc && `<script defer src="${scriptSrc}"></script>`}${
+        style && `<style>
         ${style}
       </style>`}
   </head>

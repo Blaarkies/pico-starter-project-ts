@@ -26,6 +26,7 @@ let config = {
         'wifi',
         'http',
         'pico_cyw43',
+        'fs',
     ],
     minify: additionalArgs.minify,
     drop: additionalArgs.superMinify ? ['console'] : [],

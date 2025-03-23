@@ -18,7 +18,7 @@ export async function connectToWifiNetwork(
     storage.setItem('WIFI_SECURITY', wpa2Personal);
 
     let retryLimit = 5;
-    for (let i = 0; i < retryLimit; i++) {
+    for (let i = 1; i < retryLimit + 1; i++) {
         let wiFi = new WiFi();
         let isConnected = await connect(wiFi)
             .then(wifiInfo => {
@@ -27,19 +27,17 @@ export async function connectToWifiNetwork(
                     .map(([k, v]) => `${k}=${v}`)
                     .join('\n\t');
                 console.log(`>> Connected to WiFi network\n\t${wifiInfoText}\n`);
-                return true;
+
+                return waitForDuration(1e3).then(() => true);
             })
             .catch(async (err) => {
                 console.error(`>> Failed to connect. Retrying...\n`
-                    + `\tAttempt #[${i + 1}] of ${retryLimit}`, err);
+                    + `\tAttempt #[${i}] of ${retryLimit}`, err);
                 await waitForDuration(2e3);
                 return false;
             });
 
         if (isConnected) {
-            // Attempt at finding:
-            // Uncaught (in promise) Error: WiFi is not connected.
-            await waitForDuration(1e3);
             return wiFi;
         }
     }
