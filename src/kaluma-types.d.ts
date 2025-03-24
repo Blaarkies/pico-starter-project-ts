@@ -153,9 +153,12 @@ declare module 'pico_cyw43' {
 
 declare module 'wifi' {
 
+    import { EventEmitter } from 'events';
+
     type SecurityTypes = 'OPEN' | 'WEP' | 'WPA' | 'PSK' | 'WPA2' | 'WPA2-EAP';
 
-    class WiFi {
+    class WiFi
+        extends EventEmitter<'connected' | 'disconnected' | 'associated'> {
         /** Reset the Wi-Fi device */
         reset(callback: () => void);
 
@@ -169,7 +172,10 @@ declare module 'wifi' {
              }) => void,
         );
 
-        /** Connects to a Wi-Fi network */
+        /**
+         * Connects to a Wi-Fi network.
+         * Synchronous method blocks the event loop
+         */
         connect(
             connectInfo: {
                 ssid: string;
@@ -187,6 +193,12 @@ declare module 'wifi' {
             callback: (err, connectInfo: {}) => void,
         );
 
+        /**
+         * Connects to a Wi-Fi network using details from localStorage.
+         * Synchronous method blocks the event loop
+         */
+        connect(callback: (err, connectInfo: {}) => void);
+
         /** Disconnect from currently connected Wi-Fi network */
         disconnect(callback: (error) => void);
 
@@ -196,5 +208,101 @@ declare module 'wifi' {
             bssid: string;
         }) => void);
     }
+
+}
+
+
+declare module 'fs' {
+
+    /** Return the current working directory */
+    function cwd(): number;
+
+    /** Change the current working directory */
+    function chdir(path: string): number;
+
+    /**
+     * Following flags are available.
+     * <br/> 'r' : Open file for reading.
+     * <br/> 'r+' : Open file for reading and writing. The file is created if not exists.
+     * <br/> 'w' : Open file for writing. The file is created if not exists.
+     * <br/> 'w+' : Open file for reading and writing. The file is created if not exists.
+     * <br/> 'wx' : Open file for writing, but fails if exists.
+     * <br/> 'wx+' : Open file for reading and writing, but fails if exists.
+     * <br/> 'a' : Open file for appending.
+     * <br/> 'a+' : Open file for reading and appending.
+     * <br/> 'ax' : Open file for appending, but fails if exists.
+     * <br/> 'ax+' : Open file for reading and appending, but fails if exists.
+     */
+    function open(
+        path: string,
+        flags:
+            | 'r'
+            | 'r+'
+            | 'w'
+            | 'w+'
+            | 'wx'
+            | 'wx+'
+            | 'a'
+            | 'a+'
+            | 'ax'
+            | 'ax+',
+        mode?: number,
+    ): number;
+
+    /** Read data from the file specified by `fd` */
+    function read(
+        fd: number,
+        buffer: Array,
+        offset: number,
+        length: number,
+        position?: number,
+    ): number;
+
+    /** Write data to the file specified by `fd` */
+    function write(
+        fd: number,
+        buffer: Array,
+        offset?: number,
+        length?: number,
+        position?: number,
+    ): number;
+
+    /** Close the file specified by `fd` */
+    function close(fd: number): void;
+
+    /** Read data from the file and return the data */
+    function readFile(path: string): Uint8Array;
+
+    /** Write data to the file specified by path */
+    function writeFile(path: string, data: Uint8Array): void;
+
+    /** Remove the file specified by `path` */
+    function unlink(path: string): void;
+
+    /** Return status of the file specified by path */
+    function stat(path: string): {
+        isDirectory(): boolean;
+        isFile(): boolean;
+        size: number;
+    };
+
+    /** Rename the file or directory */
+    function rename(oldPath: string, newPath: string): void;
+
+    /** Test if the given path exists */
+    function exists(path: string): boolean;
+
+    /** Create a directory */
+    function mkdir(path: string): void;
+
+    /** Remove a directory */
+    function rmdir(path: string): void;
+
+    /** Remove a file or directory specified by the path */
+    function rm(path: string): string;
+
+    /** Read the contents of a directory */
+    function readdir(path: string): string[];
+
 
 }
