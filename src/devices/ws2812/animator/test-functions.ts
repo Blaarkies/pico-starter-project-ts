@@ -24,6 +24,7 @@ export function makeMockConfig(
         duration = 2e3,
         toRgb = [100, 200, 255],
         ledCount = 10,
+        fps = 10,
     }: Partial<AnimationConfig> & MockConfigArgs) {
     let pixels = makeMockWs2812(ledCount);
 
@@ -33,7 +34,7 @@ export function makeMockConfig(
         fromRgb: [0, 0, 0],
         toRgb,
         rgbLerpFn: lerpRgbPixelLinear,
-        fps: 10,
+        fps,
         stop$: new Subject(),
         pixels,
         intervalMs: undefined,

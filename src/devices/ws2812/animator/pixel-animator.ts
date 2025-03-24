@@ -75,7 +75,8 @@ export class PixelAnimator {
 
         let job$ = config.animationFn(config);
         job$.subscribe(c => this.latestColor = c);
-        // this.latestColor = await lastValueFrom(job$);
+
+        // return firstValueFrom(this.stop$);
     }
 
 }

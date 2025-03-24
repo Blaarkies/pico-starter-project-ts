@@ -9,13 +9,13 @@ interface WiFiDetails {
 }
 
 export async function connectToWifiNetwork(
-    unavailable: string,
+    ssid: string,
     password: string,
-    wpa2Personal: string,
+    security: string,
 ): Promise<WiFi> {
-    storage.setItem('WIFI_SSID', unavailable);
+    storage.setItem('WIFI_SSID', ssid);
     storage.setItem('WIFI_PASSWORD', password);
-    storage.setItem('WIFI_SECURITY', wpa2Personal);
+    storage.setItem('WIFI_SECURITY', security);
 
     let retryLimit = 5;
     for (let i = 1; i < retryLimit + 1; i++) {

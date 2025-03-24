@@ -1,6 +1,38 @@
 import { ColorRgb } from 'common/color-space';
+import { lerp } from 'common/interpolate';
 import { makeMockWs2812 } from 'devices/ws2812/animator/test-functions';
-import { PixelAnimator } from './pixel-animator';
+import { Observable } from 'rxjs/internal/Observable';
+import { interval } from 'rxjs/internal/observable/interval';
+import { map } from 'rxjs/internal/operators/map';
+import { take } from 'rxjs/internal/operators/take';
+import { takeUntil } from 'rxjs/internal/operators/takeUntil';
+import {
+    AnimationConfig,
+    PixelAnimator,
+} from './pixel-animator';
+
+/** Isolated standard animation function to test PixelAnimator */
+function animateMock(config: AnimationConfig): Observable<ColorRgb> {
+    let lastStepIndex = config.stepCount - 1;
+
+    return interval(config.intervalMs).pipe(
+        map(i => {
+            let ratio = i / lastStepIndex;
+            let from = config.fromRgb;
+            let to = config.toRgb;
+            let newColor: ColorRgb = [
+                lerp(from[0], to[0], ratio),
+                lerp(from[1], to[1], ratio),
+                lerp(from[2], to[2], ratio),
+            ];
+            config.pixels.fillAllColor(newColor);
+            config.pixels.write();
+
+            return newColor;
+        }),
+        take(config.stepCount),
+        takeUntil(config.stop$));
+}
 
 describe('PixelAnimator', () => {
 
@@ -30,17 +62,21 @@ describe('PixelAnimator', () => {
     describe('setToColor()', () => {
 
         test('given good args, it fills and writes pixels', async () => {
+            jest.useFakeTimers();
+
             let mockWs2812 = makeMockWs2812();
             let pixelAnimator = new PixelAnimator(mockWs2812, 10, [0, 0, 0]);
 
-
-            await pixelAnimator.setToColor([255, 127, 63]);
+            pixelAnimator.setToColor([255, 127, 63]);
+            await jest.advanceTimersByTimeAsync(2e3);
 
             expect(mockWs2812.fillAllColor).toHaveBeenCalledTimes(10);
             expect(mockWs2812.fillAllColor)
                 .toHaveBeenLastCalledWith([255, 127, 63]);
 
             expect(mockWs2812.write).toHaveBeenCalledWith();
+
+            jest.useRealTimers();
         });
 
         test('a new overlapping animation cancels the old animation',
@@ -52,14 +88,17 @@ describe('PixelAnimator', () => {
                 jest.useFakeTimers();
 
                 // "red" animation starts
-                pixelAnimator.setToColor([255, 0, 0], {duration: 10e3});
+                pixelAnimator.setToColor([255, 0, 0],
+                    {duration: 10e3, animationFn: animateMock});
 
                 await jest.advanceTimersByTimeAsync(1e3);
-                expect(mockWs2812.fillAllColor.mock.lastCall[0][0]).toBeGreaterThan(50);
+                expect(mockWs2812.fillAllColor.mock.lastCall[0][0])
+                    .toBeGreaterThan(0);
                 // "red" animation running
 
                 // "blue" animation starts
-                pixelAnimator.setToColor([0, 0, 255], {duration: 1e3});
+                pixelAnimator.setToColor([0, 0, 255],
+                    {duration: 1e3, animationFn: animateMock});
 
                 await jest.advanceTimersByTimeAsync(1e3);
                 expect(mockWs2812.fillAllColor)

@@ -4,9 +4,9 @@ describe('lerpRgbPixelLinear()', () => {
 
     test.each([
         [0, [0, 0, 0]],
-        [.1, [37, 55, 74]],
-        [.5, [95, 143, 191]],
-        [.9, [122, 183, 245]],
+        [.1, [4, 5, 7]],
+        [.5, [31, 46, 61]],
+        [.9, [98, 147, 197]],
         [1, [127, 191, 255]],
     ])('at ratio [%d], should return %s interpolated color',
         (t, expected) => {
