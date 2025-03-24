@@ -6,6 +6,7 @@
     "sideEffects": false,
     "main": "src/index.ts",
     "scripts": {
+        "deploy-assets": "node scripts/deploy-assets.js",
         "build": "node scripts/esbuild.config.js",
         "build-minify": "npm run build -- --minify",
         "flash": "npm run build && kaluma flash dist/main.js",

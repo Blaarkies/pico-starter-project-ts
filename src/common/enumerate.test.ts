@@ -1,4 +1,5 @@
 import {
+    lastItem,
     makeNumberList,
     pickRandomElement,
     sum,
@@ -43,13 +44,13 @@ ${.5}  | ${2}
 ${1}   | ${3} 
 `('given a list, when Math.random()=$given, it returns element #$expected',
         ({given, expected}) => {
-        spyMathRandom = jest.spyOn(global.Math, 'random')
-            .mockReturnValue(given);
+            spyMathRandom = jest.spyOn(global.Math, 'random')
+                .mockReturnValue(given);
 
-        let result = pickRandomElement(list);
+            let result = pickRandomElement(list);
 
-        expect(result).toBe(expected);
-    });
+            expect(result).toBe(expected);
+        });
 
 });
 
@@ -65,6 +66,22 @@ ${[1, 2, 3]}  | ${6}
 `('given list $list, it returns the sum=$expected',
         ({list, expected}) => {
             let result = sum(list);
+            expect(result).toBe(expected);
+        });
+
+});
+
+describe('lastItem()', () => {
+
+    test.each([
+        [[1, 2, 3], 3],
+        [[1], 1],
+        [[1, 2], 2],
+        [[2, 1], 1],
+        [[], undefined],
+    ])('given list %s, it returns the last item=%s',
+        (list, expected) => {
+            let result = lastItem(list);
             expect(result).toBe(expected);
         });
 

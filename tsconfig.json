@@ -12,8 +12,8 @@
             "common/*": [
                 "./src/common/*"
             ],
-            "communication/*": [
-                "./src/communication/*"
+            "network/*": [
+                "./src/network/*"
             ],
             "devices/*": [
                 "./src/devices/*"

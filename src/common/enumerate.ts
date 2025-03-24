@@ -40,3 +40,7 @@ export function derivatives(list: number[], n: number = 1): number[] {
     }
     return resultList;
 }
+
+export function lastItem<T>(list: T[]): T {
+    return list[list.length - 1];
+}
