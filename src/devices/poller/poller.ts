@@ -1,7 +1,5 @@
-import {
-    lerp,
-    waitForDuration,
-} from '../../common';
+import { lerp } from 'common/interpolate';
+import { waitForDuration } from 'common/time';
 
 type DisposeFn = () => void;
 

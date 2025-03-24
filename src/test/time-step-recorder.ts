@@ -1,7 +1,7 @@
 import {
     average,
     derivatives,
-} from '../common';
+} from 'common/enumerate';
 
 interface TimeStepReport {
     averageChange: number;

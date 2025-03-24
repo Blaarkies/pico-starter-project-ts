@@ -1,5 +1,5 @@
 import { filter } from 'rxjs';
-import { bitwiseAndMask } from '../../common';
+import { bitwiseAndMask } from 'common/binary';
 import { boardController } from '../board-controller';
 
 export const mockSetWatch = jest.fn(<typeof setWatch>(

@@ -1,12 +1,8 @@
-import {
-    concat,
-    Observable,
-    timer,
-} from 'rxjs';
-import {
-    repeat,
-    scan,
-} from 'rxjs/operators';
+import { Observable } from 'rxjs/internal/Observable';
+import { concat } from 'rxjs/internal/observable/concat';
+import { timer } from 'rxjs/internal/observable/timer';
+import { repeat } from 'rxjs/internal/operators/repeat';
+import { scan } from 'rxjs/internal/operators/scan';
 
 /**
  * Returns an observable that emits according to the time duration specified by
