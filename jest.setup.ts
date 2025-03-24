@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import { readFileSync } from 'fs';
 
 /**
  * Sets the global variables to match the Kaluma runtime environment
@@ -11,7 +11,7 @@ import * as fs from 'fs';
  * These values are available during runtime on the device, but not
  * on the Jest test environment unless initialized below.
  */
-let typesFile = fs.readFileSync(
+let typesFile = readFileSync(
     './node_modules/@types/kaluma/index.d.ts',
     {encoding: 'utf8'});
 
