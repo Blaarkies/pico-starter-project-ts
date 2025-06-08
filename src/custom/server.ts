@@ -32,6 +32,7 @@ export async function setupServer(controls: {
     setBoardLed: (isOn: boolean) => void;
 }) {
     console.log('>> Starting server setup...');
+
     sequencedInterval([100, 300, 200])
         .pipe(take(20))
         .subscribe(() => controls.toggleBoardLed());
@@ -42,7 +43,7 @@ export async function setupServer(controls: {
         '<<SECRET_WIFI_SECURITY>>',
     );
 
-    let server = new MuWebServer({assetsPath: 'assets'})
+    new MuWebServer({assetsPath: 'assets'})
         .start(async (error: Error) => {
             if (error) {
                 return;
@@ -63,6 +64,11 @@ export async function setupServer(controls: {
         })
 
         .redirect('/', '/index.html')
+
+        .get('/favicon.ico', (req, res) => {
+            res.writeHead(204, 'No favicon');
+            res.end();
+        })
 
         .get('/api/cycle-brightness', async () => {
             let cycler = controls.colorCycler;

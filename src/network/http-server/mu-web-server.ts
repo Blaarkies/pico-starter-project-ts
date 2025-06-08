@@ -1,6 +1,7 @@
 import { promiseWithResolvers } from 'common/async';
 import { lastItem } from 'common/enumerate';
 import { overrideDefaults } from 'common/function';
+import { waitForDuration } from 'common/time';
 import { stat } from 'fs';
 import {
     createServer,
@@ -116,17 +117,21 @@ export class MuWebServer {
     /** Creates the HTTP server with the current configuration */
     start(callback?: (error?: Error) => void): this {
         try {
-            let server = createServer((req, res) =>
-                this.queue.add(() => this.handleRequest(req, res)));
-
+            let server = createServer();
+            server.on('request', (req, res) =>
+                this.queue.add(async () => {
+                    await this.handleRequest(req, res);
+                    await waitForDuration(100);
+                }));
+            server.on('error', (e) => {
+                this.logger.log(`Server failed to start: ${e?.message}`, 'error');
+                callback?.(e);
+            });
             server.listen(this.port, () => {
                 let message = `Server running on http://`
                     + `${this.getServerIp(server)}:${this.port}`;
                 this.logger.log(message, 'info');
                 callback?.();
-            }).on('error', (e) => {
-                this.logger.log(`Server failed to start: ${e?.message}`, 'error');
-                callback?.(e);
             });
         } catch (e) {
             console.error(e, e?.message, e.stack);
@@ -186,19 +191,21 @@ export class MuWebServer {
         let method = req.method as HttpMethod;
 
         try {
+            if (method === 'POST') {
+                await this.parseBody(req, res);
+            }
+
             let routeHandler = this.routes.get(pathname)?.get(method);
             this.logger.log(`${method} ${pathname}`, 'info');
+
             if (routeHandler) {
-                if (method === 'POST') {
-                    await this.parseBody(req, res);
-                }
                 await routeHandler(req, res);
                 return;
             }
 
             await this.serveStatic(req, res, pathname);
         } catch (e) {
-            this.handleError(res, 500, 'Internal server error');
+            this.handleError(res);
             this.logger.log(`Could not process request: ${e}`, 'error');
         }
     }
@@ -266,29 +273,33 @@ export class MuWebServer {
         }
 
         try {
-            let contentType = this.getMimeType(filePath);
-            res.setHeader('Content-Type', contentType);
-            res.setHeader('Content-Length', stats.size);
-
             let streamPromise = promiseWithResolvers();
 
             let onErrorFileRead = (e: Error) => {
                 this.logger.log(`File stream error: ${e?.message}`,
                     'error');
-                this.handleError(res, 500, 'Internal server error');
+                this.handleError(res);
                 streamPromise.resolve();
             };
 
+            let contentType = this.getMimeType(filePath);
+            res.setHeader('Status-code', 266);
+            res.setHeader('Status-message', 'asfhgasfg');
+
             new FileReadStream(filePath)
                 .on('error', e => onErrorFileRead(e))
-                .on('close', () => {
+                .on('close', async () => {
                     this.logger.log(`200 ${pathname}`);
+                    res.end();
+                    await waitForDuration(100);
                     streamPromise.resolve();
                 })
                 .pipe(res)
                 .on('error', e => onErrorFileRead(e));
 
             await streamPromise.promise;
+        } catch (e) {
+            this.logger.log(`Could not read file [${filePath}]`, 'error');
         } finally {
             mainPromise.resolve();
         }
@@ -297,8 +308,8 @@ export class MuWebServer {
     }
 
     /** Sets error code, status, and ends the response */
-    private handleError(res: ServerResponse, status: number, message: string) {
-        res.statusCode = status;
+    private handleError(res: ServerResponse, status?: number, message?: string) {
+        res.writeHead(status ?? 500, message ?? 'Internal server error');
         res.end(JSON.stringify({error: message}));
         this.logger.log(`${res.statusCode} ${message}`);
     }

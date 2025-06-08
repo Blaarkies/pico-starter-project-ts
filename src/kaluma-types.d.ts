@@ -245,7 +245,8 @@ declare module 'fs' {
             | 'a'
             | 'a+'
             | 'ax'
-            | 'ax+',
+            | 'ax+'
+        = 'r',
         mode?: number,
     ): number;
 

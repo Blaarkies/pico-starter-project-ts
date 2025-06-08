@@ -53,8 +53,11 @@ export class FileReadStream extends EventEmitter<ReadableEvents> {
         this.readableHighWaterMark = config?.highWaterMark || 64;
         this.internalBuffer = new Uint8Array(this.readableHighWaterMark);
 
-        promiseTry(() => this.fileDescriptor = open(this.filePath, 'r'))
-            .catch((e: Error) => this.destroy(e));
+        try {
+            this.fileDescriptor = open(this.filePath);
+        } catch (e) {
+            this.destroy(e);
+        }
     }
 
     isPaused() {
@@ -136,7 +139,7 @@ export class FileReadStream extends EventEmitter<ReadableEvents> {
         this.emit('end');
     }
 
-    async readYield(size?: number): Promise<ReturnType<typeof this.read>> {
+    async readYield(): Promise<ReturnType<typeof this.read>> {
         await waitForDuration(0);
         return this.read();
     }
@@ -150,7 +153,6 @@ export class FileReadStream extends EventEmitter<ReadableEvents> {
         };
 
         const onEnd = async () => {
-            destination.end();
             destination.off('error', onError);
 
             this.off('data', onData);
