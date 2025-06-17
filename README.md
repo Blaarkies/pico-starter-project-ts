@@ -25,7 +25,7 @@ step-by-step [Total beginner guide](https://github.com/Blaarkies/pico-starter-pr
     - [Official Guide](https://kalumajs.org/) and resources
     - Press and hold the white BOOTSEL button on the Pico, and plug in the USB cable
     - The mounted USB storage device named `RPI-RP2` will appear
-    - Copy the [.uf2](storage/kaluma-rp2-pico-1.1.0.uf2) file onto this storage device
+    - Copy the [.uf2](storage/kaluma-rp2-pico-1.2.1.uf2) file onto this storage device
     - The Pico will restart automatically with the new firmware, completing the process
 
 ### Running the project
@@ -34,6 +34,7 @@ step-by-step [Total beginner guide](https://github.com/Blaarkies/pico-starter-pr
 - Plug in the Pico RP2040 chip
 - In [main.ts](src/main.ts), add the line `console.log('Hello Microworld!')`
 - Run `npm run debug`
+  - _Error? Go to [troubleshooting](#troubleshooting)_
 - The log message should print out in the prompt alongside the sensor outputs such as the temperature and potentiometer
   readings
 
@@ -49,14 +50,22 @@ The `main.ts` file contains examples of interacting with hardware on a Pico:
 
 ## Troubleshooting
 
+### General
 - **Pico is frozen / bricked / stalled**
-    - It could be a whole host of issues. Here is how to completely reset it:
-        - Unplug it completely
-        - Restart your computer (Windows has a habit of giving up on some USB ports)
-        - Hold down the BOOTSEL button while plugging the Pico in
-        - Copy the file from `./storage/flash_nuke.uf2` into the Pico
-            - This firmware edition erases and resets everything on the Pico
-        - The Pico should now be back to factory defaults. Now do the [Prerequisites](#Prerequisites) again
+    - Here is how to factory reset it:
+    - Unplug it, completely
+    - Restart computer (Windows gets stuck on some USB ports. You could try a different port)
+    - Hold down the BOOTSEL button, while plugging the Pico in
+    - Copy the file from `./storage/flash_nuke.uf2` into the Pico
+        - This firmware edition erases and resets everything on the Pico
+    - The Pico should now be back to factory defaults. Repeat the [Prerequisites](#Prerequisites)
+
+### Linux
+- **"Permission denied, cannot open /dev/ttyACM0"**
+  - Menu > Users and Groups > Select user > Groups > Check the 'dialout' group
+  - If the distro does not have this in GUI, try the command instead:
+    - sudo usermod -a -G dialout $USER
+  - Log out or restart
 
 ## Project details
 

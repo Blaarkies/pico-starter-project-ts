@@ -133,9 +133,11 @@ if (additionalArgs.addSecrets) {
 
     fileContents ??= readFileSync(filePath, {encoding: 'utf8'});
 
-    Object.entries(secrets).forEach(([placeholder, secret]) => {
-        fileContents = fileContents.replace(placeholder, secret);
-    });
+    Object.entries(secrets)
+        .filter(([k]) => !k.startsWith('// '))
+        .forEach(([placeholder, secret]) => {
+            fileContents = fileContents.replace(placeholder, secret);
+        });
 }
 
 /** Write out dist file once */
