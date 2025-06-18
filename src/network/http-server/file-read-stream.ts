@@ -1,4 +1,3 @@
-import { promiseTry } from 'common/async';
 import { waitForDuration } from 'common/time';
 import { EventEmitter } from 'events';
 import {
@@ -73,7 +72,7 @@ export class FileReadStream extends EventEmitter<ReadableEvents> {
             size || this.readableHighWaterMark,
             this.readableHighWaterMark);
 
-        promiseTry(() => {
+        try {
             let bytesRead = read(
                 this.fileDescriptor,
                 this.internalBuffer,
@@ -87,15 +86,14 @@ export class FileReadStream extends EventEmitter<ReadableEvents> {
                 this.push(this.internalBuffer.slice(0, bytesRead));
                 this.end();
             } else {
+                console.log('else');
                 this.readableEnded = true;
                 this.end();
             }
-        })
-            .catch((e: Error) => {
-                console.error(`Could not read file ${this.filePath}`,
-                    e?.message);
-                this.destroy(e);
-            });
+        } catch (e) {
+            console.error(`Could not read file ${this.filePath}`, e);
+            this.destroy(e);
+        }
     }
 
     private destroy(e?: Error) {
@@ -105,10 +103,12 @@ export class FileReadStream extends EventEmitter<ReadableEvents> {
         }
 
         if (this.fileDescriptor) {
-            promiseTry(() => close(this.fileDescriptor))
-                .catch((e: Error) =>
-                    console.error(`Could not close file ${this.filePath}`,
-                        e?.message));
+            try {
+                close(this.fileDescriptor);
+            } catch (e) {
+                console.error(`Could not close file ${this.filePath}`,
+                    e?.message);
+            }
         }
 
         this.emit('close');

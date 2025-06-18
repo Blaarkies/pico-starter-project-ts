@@ -29,6 +29,7 @@ export class FileLogger implements Logger {
     }
 
     private currentFileSize: number;
+    private encode: (input: string) => Uint8Array;
 
     constructor(
         private filename = 'logs.txt',
@@ -41,6 +42,8 @@ export class FileLogger implements Logger {
         }
 
         this.currentFileSize = stat(filename).size;
+        let encoder = new TextEncoder();
+        this.encode = input => encoder.encode(input);
     }
 
     log(message: string, severity: LoggerSeverity = 'info'): void {
@@ -60,10 +63,10 @@ export class FileLogger implements Logger {
 
         let fileDescriptor = open(this.filename, writeMode);
 
-        let dataBuffer = output.split('').map(c => c.charCodeAt(0));
+        let dataBuffer = this.encode(output);
         this.currentFileSize += dataBuffer.length;
 
-        write(fileDescriptor, Uint8Array.from(dataBuffer));
+        write(fileDescriptor, dataBuffer);
 
         close(fileDescriptor);
     }

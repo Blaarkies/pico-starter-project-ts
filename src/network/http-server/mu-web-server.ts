@@ -118,11 +118,11 @@ export class MuWebServer {
     start(callback?: (error?: Error) => void): this {
         try {
             let server = createServer();
-            server.on('request', (req, res) =>
-                this.queue.add(async () => {
-                    await this.handleRequest(req, res);
-                    await waitForDuration(100);
-                }));
+            server.on('request', (req, res) => {
+                 this.queue.add(() =>
+                    this.handleRequest(req, res)
+                 );
+            });
             server.on('error', (e) => {
                 this.logger.log(`Server failed to start: ${e?.message}`, 'error');
                 callback?.(e);
@@ -154,7 +154,7 @@ export class MuWebServer {
 
     /** Add an endpoint's callback to the routes map */
     private addRoute(method: HttpMethod, path: string, handler: RouteHandler) {
-        let normalizedPath = path.endsWith('/')
+        let normalizedPath = (path.endsWith('/') && path.length > 1)
                              ? path.slice(0, -1)
                              : path;
         if (!this.routes.has(normalizedPath)) {
